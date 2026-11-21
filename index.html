@@ -197,6 +197,24 @@
     background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
   }
   .best-row b{ font-size:16px; color:#ffd97a; font-variant-numeric:tabular-nums; }
+  .diff{ display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin:0 0 12px; }
+  .diff button{
+    -webkit-appearance:none; appearance:none; cursor:pointer; font-family:inherit;
+    display:flex; flex-direction:column; align-items:center; gap:3px;
+    padding:10px 4px 9px; border-radius:14px;
+    background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.13);
+    transition:transform .1s ease, background .18s ease, border-color .18s ease, box-shadow .18s ease;
+  }
+  .diff button b{ font-size:14.5px; font-weight:900; letter-spacing:-.01em; color:#dce8ff; }
+  .diff button span{ font-size:10.5px; font-weight:700; color:#8fa1c4; }
+  .diff button:active{ transform:scale(.96); }
+  .diff button.on{
+    background:linear-gradient(150deg, rgba(94,231,255,.24), rgba(127,108,255,.26));
+    border-color:rgba(94,231,255,.62);
+    box-shadow:inset 0 0 0 1px rgba(94,231,255,.26), 0 8px 22px rgba(90,170,255,.18);
+  }
+  .diff button.on b{ color:#fff; }
+  .diff button.on span{ color:#c6eaff; }
   .btn{
     display:block; width:100%; padding:15px 18px; border:0; border-radius:16px;
     font-family:inherit; font-size:16px; font-weight:900; letter-spacing:-.01em;
@@ -278,6 +296,7 @@
     <div class="chips">
       <div class="chip">&#11088; <b id="coins">0</b></div>
       <div class="chip">최고 <b id="best">0</b></div>
+      <div class="chip" id="chip-diff">쉬움</div>
     </div>
   </div>
   <div class="hud-right">
@@ -314,6 +333,11 @@
     <h1>스카이 대시 3D</h1>
     <p class="tagline">하늘길을 달리며 별을 모으세요.<br>빨라질수록 하늘이 바뀝니다.</p>
     <div class="best-row">최고 기록 <b id="title-best">0</b></div>
+    <div class="diff" role="group" aria-label="난이도 선택">
+      <button id="btn-diff-easy" type="button" aria-pressed="true"><b>쉬움</b><span>느긋하게</span></button>
+      <button id="btn-diff-normal" type="button" aria-pressed="false"><b>보통</b><span>적당하게</span></button>
+      <button id="btn-diff-hard" type="button" aria-pressed="false"><b>어려움</b><span>스릴 있게</span></button>
+    </div>
     <button id="btn-start" class="btn" type="button">게임 시작</button>
     <div class="row">
       <button id="btn-howto" class="btn ghost" type="button" style="margin-top:0">조작 안내</button>
@@ -323,6 +347,7 @@
       <p><b>컴퓨터</b> <kbd>&#8592;</kbd> <kbd>&#8594;</kbd> 좌우 이동 &#183; <kbd>&#8593;</kbd> 또는 <kbd>Space</kbd> 점프 &#183; <kbd>P</kbd> 일시정지</p>
       <p><b>모바일</b> 좌우로 밀기 &#183; 위로 밀거나 화면을 콕 눌러 점프</p>
       <p><b>요령</b> 벽은 옆으로 피하고, 낮은 바리케이드는 뛰어넘고, 파란 아치 아래에서는 점프하지 마세요. 자석은 별을 끌어당기고, 방패는 한 번 부딪혀도 막아 줍니다.</p>
+      <p><b>난이도</b> 쉬움은 천천히 시작해 장애물 간격이 넓고 부스터가 자주 나옵니다. 어려움은 처음부터 빠릅니다.</p>
     </div>
     <p class="small-note">별을 모을수록 점수가 쌓이고, 달릴수록 빨라집니다.</p>
   </div>
@@ -353,6 +378,7 @@
       <div class="stat"><span>최고</span><b id="over-best">0</b></div>
     </div>
     <button id="btn-again" class="btn" type="button">다시 하기</button>
+    <p id="over-diff" class="small-note" style="margin-top:10px">난이도 쉬움</p>
     <button id="btn-home-over" class="btn ghost" type="button">메인 화면</button>
   </div>
 </div>
@@ -402,6 +428,11 @@
     newRecord: $('new-record'),
     howto: $('howto'),
     errMsg: $('error-msg'),
+    chipDiff: $('chip-diff'),
+    overDiff: $('over-diff'),
+    btnDiffEasy: $('btn-diff-easy'),
+    btnDiffNormal: $('btn-diff-normal'),
+    btnDiffHard: $('btn-diff-hard'),
     btnSound: $('btn-sound'),
     btnPause: $('btn-pause'),
     btnStart: $('btn-start'),
@@ -443,6 +474,7 @@
   var KEY_BEST = 'skyDash3D.best';
   var KEY_SOUND = 'skyDash3D.sound';
   var KEY_TOUCH = 'skyDash3D.touch';
+  var KEY_DIFF = 'skyDash3D.diff';
 
   function storeGet(key, fallback) {
     try {
@@ -624,12 +656,48 @@
     return api;
   })();
 
+  /* ══════════════════════════ 난이도 ══════════════════════════ */
+  var DIFF_ORDER = ['easy', 'normal', 'hard'];
+  var DIFFS = {
+    easy: {
+      label: '쉬움',
+      startSpeed: 13, maxSpeed: 34, speedGain: 0.0100,
+      gapMin: 1.4, gapMax: 2.2, gapFloor: 18, gapFirst: 78,
+      itemFirst: 150, itemGapMin: 220, itemGapRange: 180,
+      patterns: [
+        ['single', 0.34], ['double', 0.18], ['jumpRow', 0.15],
+        ['arch', 0.07], ['wallGuide', 0.16], ['twoWaves', 0.10]
+      ]
+    },
+    normal: {
+      label: '보통',
+      startSpeed: 17, maxSpeed: 44, speedGain: 0.0120,
+      gapMin: 1.15, gapMax: 1.9, gapFloor: 24, gapFirst: 64,
+      itemFirst: 220, itemGapMin: 280, itemGapRange: 220,
+      patterns: [
+        ['single', 0.28], ['double', 0.24], ['jumpRow', 0.15],
+        ['arch', 0.11], ['wallGuide', 0.13], ['twoWaves', 0.09]
+      ]
+    },
+    hard: {
+      label: '어려움',
+      startSpeed: 21, maxSpeed: 54, speedGain: 0.0135,
+      gapMin: 0.95, gapMax: 1.75, gapFloor: 30, gapFirst: 54,
+      itemFirst: 300, itemGapMin: 340, itemGapRange: 260,
+      patterns: [
+        ['single', 0.24], ['double', 0.28], ['jumpRow', 0.15],
+        ['arch', 0.14], ['wallGuide', 0.11], ['twoWaves', 0.08]
+      ]
+    }
+  };
+
   /* ══════════════════════════ 설정값 ══════════════════════════ */
   var CFG = {
     lanes: [-2.25, 0, 2.25],
-    startSpeed: 21,
-    maxSpeed: 54,
-    speedGain: 0.0135,
+    diff: DIFFS.easy,
+    startSpeed: DIFFS.easy.startSpeed,
+    maxSpeed: DIFFS.easy.maxSpeed,
+    speedGain: DIFFS.easy.speedGain,
     gravity: 54,
     jumpVel: 15.8,
     playerHalfX: 0.42,
@@ -671,6 +739,7 @@
     lastTs: 0,
     soundOn: true,
     touchMode: 'auto',
+    difficulty: 'easy',
     loadFailed: false,
     lastPattern: '',
     rafId: 0,
@@ -1255,44 +1324,38 @@
   function spawnPattern() {
     var z = CFG.spawnZ;
     var free = randInt(0, 2);
-    var roll = Math.random();
-    var pattern = 'single';
+    var pattern = pickPattern(CFG.diff);
 
-    if (roll < 0.24) {
-      pattern = 'single';
-      addObstacle(Math.random() < 0.55 ? 'wall' : 'barrier', randInt(0, 2), z);
-    } else if (roll < 0.52) {
-      pattern = 'double';
+    if (pattern === 'double') {
       for (var l = 0; l < 3; l++) {
         if (l === free) continue;
         addObstacle(Math.random() < 0.62 ? 'wall' : 'barrier', l, z + rand(-1.5, 1.5));
       }
-    } else if (roll < 0.67) {
-      pattern = 'jumpRow';
+    } else if (pattern === 'jumpRow') {
       var l1 = free;
       var l2 = (free + 1) % 3;
       addObstacle('barrier', l1, z);
       addObstacle('barrier', l2, z + 1.6);
-    } else if (roll < 0.81) {
+    } else if (pattern === 'arch') {
       if (Game.lastPattern === 'arch' || Game.lastPattern === 'jumpRow') {
         pattern = 'single';
         addObstacle(Math.random() < 0.5 ? 'wall' : 'barrier', randInt(0, 2), z);
       } else {
-        pattern = 'arch';
         addObstacle('arch', 1, z);
         if (Math.random() < 0.6) spawnCoinLine(randInt(0, 2), z + 12, 4, false);
       }
-    } else if (roll < 0.92) {
-      pattern = 'wallGuide';
+    } else if (pattern === 'wallGuide') {
       var wallLane = randInt(0, 2);
       addObstacle('wall', wallLane, z);
       var toward = wallLane === 0 ? 2 : 0;
       spawnCoinLine(toward, z - 4, 5, false);
-    } else {
-      pattern = 'twoWaves';
+    } else if (pattern === 'twoWaves') {
       addObstacle('wall', free, z);
       addObstacle('barrier', (free + 1) % 3, z + 27);
       addObstacle('wall', (free + 2) % 3, z + 27);
+    } else {
+      pattern = 'single';
+      addObstacle(Math.random() < 0.55 ? 'wall' : 'barrier', randInt(0, 2), z);
     }
 
     if (pattern !== 'arch' && Math.random() < 0.45) {
@@ -1302,14 +1365,15 @@
   }
 
   function maybeSpawn(moved) {
+    var d = CFG.diff;
     Game.distSinceSpawn += moved;
     if (Game.distSinceSpawn >= Game.spawnGap) {
       Game.distSinceSpawn = 0;
       spawnPattern();
-      Game.spawnGap = Math.max(30, Game.speed * (0.95 + Math.random() * 0.8));
+      Game.spawnGap = Math.max(d.gapFloor, Game.speed * (d.gapMin + Math.random() * (d.gapMax - d.gapMin)));
     }
     if (Game.distance >= Game.nextItemAt) {
-      Game.nextItemAt = Game.distance + 340 + Math.random() * 260;
+      Game.nextItemAt = Game.distance + d.itemGapMin + Math.random() * d.itemGapRange;
       spawnItem();
     }
     Game.coinGap -= moved;
@@ -1698,9 +1762,9 @@
     Game.elapsed = 0;
     Game.phaseDist = 0;
     Game.distSinceSpawn = 0;
-    Game.spawnGap = 54;
+    Game.spawnGap = CFG.diff.gapFirst;
     Game.coinGap = 64;
-    Game.nextItemAt = 300;
+    Game.nextItemAt = CFG.diff.itemFirst;
     Game.lastPattern = '';
     Game.shake = 0;
     Game.flashT = 0;
@@ -1782,6 +1846,51 @@
     UI.btnTouch.textContent = '터치 버튼: ' + label;
   }
 
+  /* ── 난이도 ── */
+  function difficultyLabel() {
+    var d = DIFFS[Game.difficulty];
+    return d ? d.label : DIFFS.easy.label;
+  }
+
+  function updateDifficultyUI() {
+    var map = { easy: UI.btnDiffEasy, normal: UI.btnDiffNormal, hard: UI.btnDiffHard };
+    for (var i = 0; i < DIFF_ORDER.length; i++) {
+      var key = DIFF_ORDER[i], btn = map[key];
+      var on = (key === Game.difficulty);
+      if (btn) {
+        btn.classList.toggle('on', on);
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      }
+    }
+    if (UI.chipDiff) UI.chipDiff.textContent = difficultyLabel();
+    if (UI.overDiff) UI.overDiff.textContent = '난이도 ' + difficultyLabel();
+  }
+
+  /* 난이도를 적용한다. persist가 참이면 다음 실행에도 기억한다. */
+  function setDifficulty(id, persist) {
+    var key = DIFFS[id] ? id : 'easy';
+    var d = DIFFS[key];
+    Game.difficulty = key;
+    CFG.diff = d;
+    CFG.startSpeed = d.startSpeed;
+    CFG.maxSpeed = d.maxSpeed;
+    CFG.speedGain = d.speedGain;
+    if (persist) storeSet(KEY_DIFF, key);
+    updateDifficultyUI();
+    return key;
+  }
+
+  function pickPattern(d) {
+    var list = d.patterns, total = 0, i;
+    for (i = 0; i < list.length; i++) total += list[i][1];
+    var r = Math.random() * total, acc = 0;
+    for (i = 0; i < list.length; i++) {
+      acc += list[i][1];
+      if (r < acc) return list[i][0];
+    }
+    return list[0][0];
+  }
+
   function isTouchDevice() {
     try {
       return ('ontouchstart' in window) || (navigator && navigator.maxTouchPoints > 0);
@@ -1855,6 +1964,7 @@
     if (UI.overScore) UI.overScore.textContent = fmt(Game.score);
     if (UI.overCoins) UI.overCoins.textContent = fmt(Game.coinCount);
     if (UI.overBest) UI.overBest.textContent = fmt(Game.best);
+    if (UI.overDiff) UI.overDiff.textContent = '난이도 ' + difficultyLabel();
     if (UI.newRecord) {
       if (Game.isRecord) UI.newRecord.classList.add('show');
       else UI.newRecord.classList.remove('show');
@@ -2192,6 +2302,9 @@
     if (UI.btnHomeOver) UI.btnHomeOver.addEventListener('click', goMenu, false);
     if (UI.btnHowto) UI.btnHowto.addEventListener('click', toggleHowto, false);
     if (UI.btnTouch) UI.btnTouch.addEventListener('click', cycleTouchMode, false);
+    if (UI.btnDiffEasy) UI.btnDiffEasy.addEventListener('click', function () { setDifficulty('easy', true); }, false);
+    if (UI.btnDiffNormal) UI.btnDiffNormal.addEventListener('click', function () { setDifficulty('normal', true); }, false);
+    if (UI.btnDiffHard) UI.btnDiffHard.addEventListener('click', function () { setDifficulty('hard', true); }, false);
     if (UI.btnRetry) UI.btnRetry.addEventListener('click', retryLoad, false);
 
     bindTouchFallback();
@@ -2229,6 +2342,7 @@
     try {
       initRenderer();
       buildWorld();
+      setDifficulty(storeGet(KEY_DIFF, 'easy'), false);
       resetRun();
       updateSoundButton();
       updateTouchLabel();
@@ -2288,6 +2402,7 @@
     state: function () {
       return {
         mode: Game.mode,
+        difficulty: Game.difficulty,
         score: Game.score,
         distance: Game.distance,
         speed: Game.speed,
@@ -2332,6 +2447,37 @@
     right: moveRight,
     jump: jump,
     sound: { toggle: toggleSound, enabled: function () { return Sound.enabled(); } },
+    difficulty: function () { return Game.difficulty; },
+    setDifficulty: function (id) { return setDifficulty(id, true); },
+    difficulties: function () {
+      var out = [];
+      for (var i = 0; i < DIFF_ORDER.length; i++) {
+        out.push({ id: DIFF_ORDER[i], label: DIFFS[DIFF_ORDER[i]].label });
+      }
+      return out;
+    },
+    config: function () {
+      var d = CFG.diff;
+      var pats = [];
+      for (var i = 0; i < d.patterns.length; i++) {
+        pats.push({ name: d.patterns[i][0], weight: d.patterns[i][1] });
+      }
+      return {
+        difficulty: Game.difficulty,
+        label: d.label,
+        startSpeed: CFG.startSpeed,
+        maxSpeed: CFG.maxSpeed,
+        speedGain: CFG.speedGain,
+        gapMin: d.gapMin,
+        gapMax: d.gapMax,
+        gapFloor: d.gapFloor,
+        gapFirst: d.gapFirst,
+        itemFirst: d.itemFirst,
+        itemGapMin: d.itemGapMin,
+        itemGapRange: d.itemGapRange,
+        patterns: pats
+      };
+    },
     debug: {
       game: Game,
       player: player,
@@ -2347,6 +2493,7 @@
       step: function (dt) { update(dt); draw(dt); },
       updateSky: updateSky,
       showGameOver: showGameOver,
+      spawnPattern: spawnPattern,
       sky: function () {
         return {
           stars: starMat.opacity,
