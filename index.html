@@ -30,11 +30,11 @@
   [hidden]{ display:none !important; }
 
   /* 배경 장식 */
-  .sky{ position:fixed; inset:0; overflow:hidden; pointer-events:none; z-index:0; }
-  .sky i{ position:absolute; display:block; border-radius:50%; filter:blur(58px); opacity:.55; }
-  .sky .b1{ width:340px; height:340px; left:-90px; top:-70px; background:#bcd9ff; }
-  .sky .b2{ width:300px; height:300px; right:-80px; top:22%; background:#e2d4ff; }
-  .sky .b3{ width:320px; height:320px; left:20%; bottom:-120px; background:#ffe2c8; }
+  .bg{ position:fixed; inset:0; overflow:hidden; pointer-events:none; z-index:0; }
+  .bg i{ position:absolute; display:block; border-radius:50%; filter:blur(58px); opacity:.55; }
+  .bg .b1{ width:340px; height:340px; left:-90px; top:-70px; background:#bcd9ff; }
+  .bg .b2{ width:300px; height:300px; right:-80px; top:22%; background:#e2d4ff; }
+  .bg .b3{ width:320px; height:320px; left:20%; bottom:-120px; background:#ffe2c8; }
 
   .screen{
     position:relative; z-index:1;
@@ -124,6 +124,9 @@
     transition:transform .1s ease, background .12s ease;
   }
   .key:active{ background:#eef5ff; transform:scale(.96); }
+  .key:focus-visible, .profile:focus-visible, .lock-btn:focus-visible, .back:focus-visible, .card:focus-visible{
+    outline:2px solid #9fc4ff; outline-offset:2px;
+  }
   .key.gap{ background:transparent; border-color:transparent; box-shadow:none; cursor:default; pointer-events:none; }
   .key.del{ font-size:21px; color:#7b8ba6; }
 
@@ -205,7 +208,7 @@
 </head>
 <body>
 
-<div class="sky" aria-hidden="true"><i class="b1"></i><i class="b2"></i><i class="b3"></i></div>
+<div class="bg" aria-hidden="true"><i class="b1"></i><i class="b2"></i><i class="b3"></i></div>
 
 <!-- ══════════ 1. 프로필 선택 ══════════ -->
 <main id="pick" class="screen">
