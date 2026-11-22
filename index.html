@@ -43,15 +43,51 @@
     padding:calc(20px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));
   }
 
-  /* ── 잠금 화면 ── */
-  #lock{ justify-content:center; }
+  /* ── 프로필 선택 ── */
+  #pick{ justify-content:center; }
+  .pick-shell{ width:100%; max-width:470px; }
+  .pick-title{ margin:0; text-align:center; font-size:27px; font-weight:800; letter-spacing:-.8px; }
+  .pick-sub{ margin:8px 0 24px; text-align:center; font-size:14px; color:var(--ink-soft); }
+  .profiles{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+  .profile{
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:11px;
+    min-height:158px; padding:24px 12px;
+    background:#fff; color:var(--ink); font-family:inherit;
+    border:1px solid rgba(255,255,255,.95); border-radius:27px;
+    box-shadow:0 10px 26px rgba(41,74,132,.11);
+    cursor:pointer; touch-action:manipulation;
+    transition:transform .16s ease, box-shadow .16s ease;
+  }
+  .profile:active{ transform:scale(.97); }
+  @media (hover:hover){
+    .profile:hover{ transform:translateY(-3px); box-shadow:0 16px 32px rgba(41,74,132,.17); }
+  }
+  .avatar{
+    width:78px; height:78px; border-radius:50%;
+    display:grid; place-items:center; font-size:40px;
+    background:linear-gradient(150deg,#eaf3ff,#f7edff);
+  }
+  .profile:nth-child(2) .avatar{ background:linear-gradient(150deg,#e6f8ef,#eaf1ff); }
+  .pname{ font-size:19px; font-weight:800; letter-spacing:-.35px; }
+
+  /* ── 비밀번호 ── */
+  #pin{ justify-content:center; }
+  .pin-shell{ width:100%; max-width:370px; }
+  .back{
+    display:inline-flex; align-items:center;
+    margin:0 0 10px 2px; padding:8px 12px;
+    border:none; border-radius:12px; background:rgba(255,255,255,.7);
+    color:var(--ink-soft); font-family:inherit; font-size:13.5px; font-weight:700;
+    cursor:pointer; touch-action:manipulation;
+  }
+  .back:active{ transform:scale(.97); }
+
   .lock-card{
-    width:100%; max-width:370px;
     background:rgba(255,255,255,.9);
     -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px);
     border:1px solid rgba(255,255,255,.95);
     border-radius:30px;
-    padding:26px 20px 22px;
+    padding:24px 20px 22px;
     text-align:center;
     box-shadow:0 22px 50px rgba(41,74,132,.14);
   }
@@ -63,8 +99,8 @@
     58%{ transform:translateX(-6px); }
     78%{ transform:translateX(4px); }
   }
-  .lock-emoji{ font-size:36px; line-height:1; }
-  .lock-title{ margin:9px 0 0; font-size:23px; font-weight:800; letter-spacing:-.6px; }
+  .lock-emoji{ font-size:34px; line-height:1; }
+  .lock-title{ margin:8px 0 0; font-size:22px; font-weight:800; letter-spacing:-.6px; }
   .lock-sub{ margin:6px 0 0; font-size:13.5px; color:var(--ink-soft); line-height:1.45; }
 
   .dots{ display:flex; justify-content:center; gap:15px; margin:20px 0 2px; }
@@ -95,18 +131,24 @@
   #hub{ justify-content:flex-start; }
   .hub-shell{ width:100%; max-width:900px; }
   .hub-head{
-    display:flex; align-items:center; justify-content:space-between; gap:12px;
-    margin:6px 2px 16px;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    margin:4px 2px 16px;
   }
-  .hello{ margin:0 0 3px; font-size:13px; color:var(--ink-soft); letter-spacing:.2px; }
-  .who{ margin:0; font-size:26px; font-weight:800; letter-spacing:-.7px; }
+  .hub-id{ display:flex; align-items:center; gap:11px; min-width:0; }
+  .avatar-sm{
+    flex:0 0 auto; width:46px; height:46px; border-radius:50%;
+    display:grid; place-items:center; font-size:24px;
+    background:#fff; box-shadow:0 4px 12px rgba(41,74,132,.12);
+  }
+  .hello{ margin:0 0 2px; font-size:12.5px; color:var(--ink-soft); letter-spacing:.2px; }
+  .who{ margin:0; font-size:23px; font-weight:800; letter-spacing:-.7px; }
   .lock-btn{
     flex:0 0 auto;
-    display:inline-flex; align-items:center; gap:6px;
-    padding:10px 14px;
+    display:inline-flex; align-items:center; gap:5px;
+    padding:10px 13px;
     border:1px solid var(--line); border-radius:14px;
     background:rgba(255,255,255,.92); color:#4a5c78;
-    font-family:inherit; font-size:13.5px; font-weight:700;
+    font-family:inherit; font-size:13px; font-weight:700;
     cursor:pointer; touch-action:manipulation;
     box-shadow:0 2px 8px rgba(41,74,132,.07);
   }
@@ -144,11 +186,15 @@
     font-size:13px; color:var(--ink-soft); line-height:1.5;
   }
   .tip b{ color:#3d6fb5; font-weight:700; }
+  .noscript{ margin:12px 0 0; text-align:center; font-size:13px; color:#c0456a; font-weight:700; }
 
   @media (max-width:380px){
     .key{ height:56px; font-size:23px; border-radius:16px; }
-    .lock-card{ padding:22px 16px 18px; }
-    .who{ font-size:23px; }
+    .lock-card{ padding:20px 15px 18px; }
+    .pick-title{ font-size:25px; }
+    .pname{ font-size:18px; }
+    .avatar{ width:70px; height:70px; font-size:36px; }
+    .who{ font-size:21px; }
     .card{ min-height:84px; padding:14px; gap:12px; }
     .icon{ width:50px; height:50px; font-size:26px; border-radius:16px; }
   }
@@ -161,79 +207,63 @@
 
 <div class="sky" aria-hidden="true"><i class="b1"></i><i class="b2"></i><i class="b3"></i></div>
 
-<!-- ══════════ 잠금 화면 ══════════ -->
-<main id="lock" class="screen">
-  <section class="lock-card" id="lockCard">
-    <div class="lock-emoji" aria-hidden="true">🔒</div>
-    <h1 class="lock-title">우리 집 놀이터</h1>
-    <p class="lock-sub">4자리 비밀번호를 눌러 주세요</p>
-
-    <div class="dots" id="dots" aria-live="polite" aria-label="입력한 숫자">
-      <span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
-    </div>
-    <div class="msg" id="msg" role="status"></div>
-
-    <div class="pad" id="pad">
-      <button class="key" type="button" data-key="1">1</button>
-      <button class="key" type="button" data-key="2">2</button>
-      <button class="key" type="button" data-key="3">3</button>
-      <button class="key" type="button" data-key="4">4</button>
-      <button class="key" type="button" data-key="5">5</button>
-      <button class="key" type="button" data-key="6">6</button>
-      <button class="key" type="button" data-key="7">7</button>
-      <button class="key" type="button" data-key="8">8</button>
-      <button class="key" type="button" data-key="9">9</button>
-      <span class="key gap" aria-hidden="true"></span>
-      <button class="key" type="button" data-key="0">0</button>
-      <button class="key del" type="button" id="delBtn" aria-label="한 자리 지우기">⌫</button>
-    </div>
-  </section>
+<!-- ══════════ 1. 프로필 선택 ══════════ -->
+<main id="pick" class="screen">
+  <div class="pick-shell">
+    <h1 class="pick-title">누구세요?</h1>
+    <p class="pick-sub">내 이름을 눌러 주세요</p>
+    <div class="profiles" id="profileList"></div>
+    <noscript><p class="noscript">이 페이지는 자바스크립트를 켜야 열립니다.</p></noscript>
+  </div>
 </main>
 
-<!-- ══════════ 홈 허브 ══════════ -->
+<!-- ══════════ 2. 비밀번호 ══════════ -->
+<main id="pin" class="screen" hidden>
+  <div class="pin-shell">
+    <button class="back" type="button" id="backBtn">← 처음으로</button>
+    <section class="lock-card" id="lockCard">
+      <div class="lock-emoji" id="pinEmoji" aria-hidden="true">🔒</div>
+      <h1 class="lock-title" id="pinName">비밀번호</h1>
+      <p class="lock-sub">4자리 비밀번호를 눌러 주세요</p>
+
+      <div class="dots" id="dots" aria-live="polite" aria-label="입력한 숫자">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      </div>
+      <div class="msg" id="msg" role="status"></div>
+
+      <div class="pad" id="pad">
+        <button class="key" type="button" data-key="1">1</button>
+        <button class="key" type="button" data-key="2">2</button>
+        <button class="key" type="button" data-key="3">3</button>
+        <button class="key" type="button" data-key="4">4</button>
+        <button class="key" type="button" data-key="5">5</button>
+        <button class="key" type="button" data-key="6">6</button>
+        <button class="key" type="button" data-key="7">7</button>
+        <button class="key" type="button" data-key="8">8</button>
+        <button class="key" type="button" data-key="9">9</button>
+        <span class="key gap" aria-hidden="true"></span>
+        <button class="key" type="button" data-key="0">0</button>
+        <button class="key del" type="button" id="delBtn" aria-label="한 자리 지우기">⌫</button>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- ══════════ 3. 내 공간 ══════════ -->
 <main id="hub" class="screen" hidden>
   <div class="hub-shell">
     <header class="hub-head">
-      <div>
-        <p class="hello">안녕하세요</p>
-        <h1 class="who" id="who">놀이터</h1>
+      <div class="hub-id">
+        <span class="avatar-sm" id="hubEmoji" aria-hidden="true">🙂</span>
+        <div>
+          <p class="hello">안녕하세요</p>
+          <h1 class="who" id="who">내 공간</h1>
+        </div>
       </div>
       <button class="lock-btn" type="button" id="lockBtn">🔒 잠그기</button>
     </header>
 
-    <section class="cards" aria-label="놀이 목록">
-      <a class="card sky" href="./skydash.html">
-        <span class="icon" aria-hidden="true">🚀</span>
-        <span class="text">
-          <span class="name">스카이 대시 3D</span>
-          <span class="desc">하늘길 3D 달리기 · 쉬움 · 보통 · 어려움</span>
-        </span>
-      </a>
-
-      <a class="card tetris" href="./tetris.html">
-        <span class="icon" aria-hidden="true">🧩</span>
-        <span class="text">
-          <span class="name">3D 테트리스</span>
-          <span class="desc">입체 블록 퍼즐</span>
-        </span>
-      </a>
-
-      <a class="card omok" href="./omok.html">
-        <span class="icon" aria-hidden="true">🤖</span>
-        <span class="text">
-          <span class="name">로봇 오목</span>
-          <span class="desc">관절팔 로봇과 오목 대국</span>
-        </span>
-      </a>
-
-      <a class="card temple" href="./temple.html">
-        <span class="icon" aria-hidden="true">🏯</span>
-        <span class="text">
-          <span class="name">3D 산사</span>
-          <span class="desc">눈 내리는 산사 · 법당 구경</span>
-        </span>
-      </a>
-    </section>
+    <section class="cards" id="cards" aria-label="놀이 목록"></section>
 
     <p class="tip">💡 태블릿이나 폰에서 <b>홈 화면에 추가</b>를 하면 앱처럼 바로 켤 수 있어요.</p>
   </div>
@@ -243,35 +273,184 @@
 /* ─────────────────────────────────────────────
    설정 — 여기만 고치면 됩니다.
 
-   · 프로필(공간)마다 4자리 숫자 비밀번호를 하나씩 둡니다.
-   · 비밀번호는 숫자 4자리만 쓰세요. (예: '1234')
-   · 지금 값은 예시용 임시 번호입니다. 원하는 번호로 바꿔 주세요.
-   · 이름과 번호 외에 다른 개인정보(생일, 전화번호 등)는 넣지 마세요.
+   · 프로필마다 4자리 숫자 비밀번호 하나와, 그 공간에서 보일 놀이 목록(apps)을 정합니다.
+   · 비밀번호는 평문이 아니라 해시(SHA-256)로만 적혀 있습니다. 번호를 바꾸려면
+     아래 pinHash 자리에 새 번호의 해시를 넣어 주세요.
+       해시 만드는 법: 브라우저 개발자 도구 콘솔에서
+       await digest(SALT + '새번호')  →  나온 값을 그대로 붙여 넣기
+   · 이 잠금은 장난으로 눌리는 것을 막는 가벼운 잠금입니다. 페이지 소스에 번호가
+     그대로 보이지는 않지만, 마음먹고 뜯어보는 사람까지 막아 주지는 못합니다.
+     중요한 자료 보관용으로는 쓰지 마세요.
+   · 이름·번호 외에 다른 개인정보(생일, 전화번호, 주소 등)는 절대 넣지 마세요.
      이 페이지는 누구나 볼 수 있는 공개 주소에 올라갑니다.
-   · 이 잠금은 장난으로 눌리는 것을 막는 가벼운 잠금입니다.
-     페이지 소스를 열면 번호를 볼 수 있으니, 중요한 자료 보관용은 아닙니다.
    ───────────────────────────────────────────── */
+
+const SALT = 'playground-salt-7f3a:';
+
+const APPS = {
+  skydash: { title:'스카이 대시 3D', desc:'하늘길 3D 달리기 · 쉬움 · 보통 · 어려움', emoji:'🚀', cls:'sky',    href:'./skydash.html' },
+  tetris:  { title:'3D 테트리스',    desc:'입체 블록 퍼즐',                          emoji:'🧩', cls:'tetris', href:'./tetris.html'  },
+  omok:    { title:'로봇 오목',      desc:'관절팔 로봇과 오목 대국',                 emoji:'🤖', cls:'omok',   href:'./omok.html'    },
+  temple:  { title:'3D 산사',       desc:'눈 내리는 산사 · 법당 구경',              emoji:'🏯', cls:'temple', href:'./temple.html'  }
+};
+
 const PROFILES = [
-  { key: 'dad', name: '아빠', pin: '1234' },
-  { key: 'kid', name: '딸',   pin: '0000' }
+  {
+    key: 'kid', name: '딸', emoji: '👧',
+    pinHash: '8cad98d932b2fdf0c0aeac65e8f514b7dbd4b4f34c89ac2c3c14e56049567300',
+    apps: ['skydash', 'tetris', 'omok']
+  },
+  {
+    key: 'dad', name: '라이언', emoji: '👨',
+    pinHash: '88e93823341e891b4b6cdd3aaee644eefb355cc94e8010a75ff53448cb51a53b',
+    apps: ['skydash', 'tetris', 'omok', 'temple']
+  }
 ];
 
+/* ───────────── SHA-256 (2중 준비) ───────────── */
+function toHex(bytes){
+  let out = '';
+  for (let i = 0; i < bytes.length; i++) {
+    out += (bytes[i] < 16 ? '0' : '') + bytes[i].toString(16);
+  }
+  return out;
+}
+
+/* 브라우저 내장 SHA-256이 없는 환경(구형 브라우저, 비보안 연결)에서도
+   같은 결과가 나오도록 순수 자바스크립트 구현을 함께 둡니다. */
+function sha256Pure(bytes){
+  const K = [
+    0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+    0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+    0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+    0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+    0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+    0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+    0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+    0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
+  ];
+  const H = [0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+
+  function rotr(x, n){ return (x >>> n) | (x << (32 - n)); }
+
+  const len = bytes.length;
+  const blocks = ((len + 8) >> 6) + 1;
+  const buf = new Uint8Array(blocks * 64);
+  buf.set(bytes);
+  buf[len] = 0x80;
+  const dv = new DataView(buf.buffer);
+  const bitLen = len * 8;
+  dv.setUint32(buf.length - 8, Math.floor(bitLen / 4294967296));
+  dv.setUint32(buf.length - 4, bitLen >>> 0);
+
+  const w = new Uint32Array(64);
+
+  for (let off = 0; off < buf.length; off += 64) {
+    for (let i = 0; i < 16; i++) w[i] = dv.getUint32(off + i * 4);
+    for (let i = 16; i < 64; i++) {
+      const a15 = w[i - 15], a2 = w[i - 2];
+      const s0 = rotr(a15, 7) ^ rotr(a15, 18) ^ (a15 >>> 3);
+      const s1 = rotr(a2, 17) ^ rotr(a2, 19) ^ (a2 >>> 10);
+      w[i] = (w[i - 16] + s0 + w[i - 7] + s1) >>> 0;
+    }
+
+    let a = H[0], b = H[1], c = H[2], d = H[3], e = H[4], f = H[5], g = H[6], h = H[7];
+
+    for (let i = 0; i < 64; i++) {
+      const S1 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25);
+      const ch = (e & f) ^ (~e & g);
+      const t1 = (h + S1 + ch + K[i] + w[i]) >>> 0;
+      const S0 = rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22);
+      const maj = (a & b) ^ (a & c) ^ (b & c);
+      const t2 = (S0 + maj) >>> 0;
+      h = g; g = f; f = e; e = (d + t1) >>> 0;
+      d = c; c = b; b = a; a = (t1 + t2) >>> 0;
+    }
+
+    H[0] = (H[0] + a) >>> 0; H[1] = (H[1] + b) >>> 0;
+    H[2] = (H[2] + c) >>> 0; H[3] = (H[3] + d) >>> 0;
+    H[4] = (H[4] + e) >>> 0; H[5] = (H[5] + f) >>> 0;
+    H[6] = (H[6] + g) >>> 0; H[7] = (H[7] + h) >>> 0;
+  }
+
+  let out = '';
+  for (let i = 0; i < 8; i++) out += ('00000000' + H[i].toString(16)).slice(-8);
+  return out;
+}
+
+function utf8Bytes(text){
+  if (window.TextEncoder) return new TextEncoder().encode(text);
+  const out = [];
+  for (let i = 0; i < text.length; i++) {
+    let code = text.charCodeAt(i);
+    if (code < 0x80) out.push(code);
+    else if (code < 0x800) out.push(0xc0 | (code >> 6), 0x80 | (code & 63));
+    else out.push(0xe0 | (code >> 12), 0x80 | ((code >> 6) & 63), 0x80 | (code & 63));
+  }
+  return new Uint8Array(out);
+}
+
+async function digest(text){
+  const bytes = utf8Bytes(text);
+  if (window.crypto && window.crypto.subtle && window.crypto.subtle.digest && window.isSecureContext) {
+    try {
+      const buf = await window.crypto.subtle.digest('SHA-256', bytes);
+      return toHex(new Uint8Array(buf));
+    } catch (e) { /* 아래 순수 구현으로 넘어감 */ }
+  }
+  return sha256Pure(bytes);
+}
+
+/* ───────────── 화면 동작 ───────────── */
 (function () {
   'use strict';
 
-  const STORE_KEY = 'playground.profile';   // 탭을 닫으면 사라지는 기억
+  const STORE_KEY = 'playground.profile';
   const MAX_LEN = 4;
 
-  const lockScreen = document.getElementById('lock');
+  const pickScreen = document.getElementById('pick');
+  const pinScreen  = document.getElementById('pin');
   const hubScreen  = document.getElementById('hub');
   const lockCard   = document.getElementById('lockCard');
   const dotsBox    = document.getElementById('dots');
   const dots       = Array.prototype.slice.call(dotsBox.querySelectorAll('.dot'));
   const msg        = document.getElementById('msg');
+  const pinEmoji   = document.getElementById('pinEmoji');
+  const pinName    = document.getElementById('pinName');
+  const profileList= document.getElementById('profileList');
+  const cards      = document.getElementById('cards');
   const who        = document.getElementById('who');
+  const hubEmoji   = document.getElementById('hubEmoji');
 
+  let current = null;   // 지금 비밀번호를 받고 있는 프로필
   let entered = '';
+  let busy = false;
   let errorTimer = null;
+
+  function show(which) {
+    pickScreen.hidden = which !== 'pick';
+    pinScreen.hidden  = which !== 'pin';
+    hubScreen.hidden  = which !== 'hub';
+    window.scrollTo(0, 0);
+  }
+
+  /* 프로필 카드 그리기 */
+  PROFILES.forEach(function (p) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'profile';
+    const av = document.createElement('span');
+    av.className = 'avatar';
+    av.setAttribute('aria-hidden', 'true');
+    av.textContent = p.emoji;
+    const nm = document.createElement('span');
+    nm.className = 'pname';
+    nm.textContent = p.name;
+    btn.appendChild(av);
+    btn.appendChild(nm);
+    btn.addEventListener('click', function () { startPin(p); });
+    profileList.appendChild(btn);
+  });
 
   function drawDots() {
     dots.forEach(function (dot, i) {
@@ -290,7 +469,7 @@ const PROFILES = [
     msg.textContent = text;
     dotsBox.classList.add('err');
     lockCard.classList.remove('err');
-    void lockCard.offsetWidth;            // 애니메이션 다시 재생
+    void lockCard.offsetWidth;
     lockCard.classList.add('err');
     errorTimer = setTimeout(function () {
       resetDots();
@@ -299,61 +478,103 @@ const PROFILES = [
     }, 900);
   }
 
-  function findProfile(pin) {
-    for (let i = 0; i < PROFILES.length; i++) {
-      if (String(PROFILES[i].pin) === pin) return PROFILES[i];
-    }
-    return null;
+  function startPin(profile) {
+    current = profile;
+    pinEmoji.textContent = profile.emoji;
+    pinName.textContent = profile.name + ' 비밀번호';
+    document.title = profile.name + ' · 우리 집 놀이터';
+    resetDots();
+    msg.textContent = '';
+    lockCard.classList.remove('err');
+    show('pin');
+  }
+
+  function renderApps(profile) {
+    cards.innerHTML = '';
+    profile.apps.forEach(function (id) {
+      const app = APPS[id];
+      if (!app) return;
+      const a = document.createElement('a');
+      a.className = 'card ' + app.cls;
+      a.href = app.href;
+
+      const icon = document.createElement('span');
+      icon.className = 'icon';
+      icon.setAttribute('aria-hidden', 'true');
+      icon.textContent = app.emoji;
+
+      const text = document.createElement('span');
+      text.className = 'text';
+      const name = document.createElement('span');
+      name.className = 'name';
+      name.textContent = app.title;
+      const desc = document.createElement('span');
+      desc.className = 'desc';
+      desc.textContent = app.desc;
+      text.appendChild(name);
+      text.appendChild(desc);
+
+      a.appendChild(icon);
+      a.appendChild(text);
+      cards.appendChild(a);
+    });
   }
 
   function enterSpace(profile) {
+    hubEmoji.textContent = profile.emoji;
     who.textContent = profile.name + '의 공간';
     document.title = profile.name + '의 공간 · 우리 집 놀이터';
-    lockScreen.hidden = true;
-    hubScreen.hidden = false;
+    renderApps(profile);
     resetDots();
     msg.textContent = '';
-    window.scrollTo(0, 0);
+    show('hub');
   }
 
-  function submit() {
-    const profile = findProfile(entered);
-    if (profile) {
-      try { sessionStorage.setItem(STORE_KEY, profile.key); } catch (e) {}
-      enterSpace(profile);
+  async function submit() {
+    if (busy || !current) return;
+    busy = true;
+    const target = current;
+    const input = entered;
+    let hash = '';
+    try { hash = await digest(SALT + input); } catch (e) { hash = ''; }
+    busy = false;
+
+    if (hash && hash === target.pinHash) {
+      try { sessionStorage.setItem(STORE_KEY, target.key); } catch (e) {}
+      enterSpace(target);
     } else {
       showError('비밀번호가 맞지 않아요. 다시 눌러 주세요.');
     }
   }
 
   function press(digit) {
-    if (dotsBox.classList.contains('err')) return;   // 오류 표시 중에는 잠깐 막기
+    if (dotsBox.classList.contains('err') || busy) return;
     if (entered.length >= MAX_LEN) return;
     entered += digit;
     msg.textContent = '';
     drawDots();
     if (entered.length === MAX_LEN) {
       const filled = entered;
-      setTimeout(function () {
-        if (entered === filled) submit();
-      }, 140);
+      setTimeout(function () { if (entered === filled) submit(); }, 140);
     }
   }
 
   function removeOne() {
-    if (dotsBox.classList.contains('err')) return;
+    if (dotsBox.classList.contains('err') || busy) return;
     if (!entered.length) return;
     entered = entered.slice(0, -1);
     drawDots();
   }
 
-  function lock() {
+  function goPick() {
+    clearTimeout(errorTimer);
+    current = null;
     try { sessionStorage.removeItem(STORE_KEY); } catch (e) {}
-    hubScreen.hidden = true;
-    lockScreen.hidden = false;
     document.title = '우리 집 놀이터';
     resetDots();
     msg.textContent = '';
+    lockCard.classList.remove('err');
+    show('pick');
   }
 
   document.getElementById('pad').addEventListener('click', function (event) {
@@ -361,22 +582,23 @@ const PROFILES = [
     if (btn) press(btn.dataset.key);
   });
   document.getElementById('delBtn').addEventListener('click', removeOne);
-  document.getElementById('lockBtn').addEventListener('click', lock);
+  document.getElementById('backBtn').addEventListener('click', goPick);
+  document.getElementById('lockBtn').addEventListener('click', goPick);
 
   document.addEventListener('keydown', function (event) {
-    if (!lockScreen.hidden) {
-      if (/^[0-9]$/.test(event.key)) { press(event.key); }
+    if (!pinScreen.hidden) {
+      if (/^[0-9]$/.test(event.key)) press(event.key);
       else if (event.key === 'Backspace') { event.preventDefault(); removeOne(); }
-      else if (event.key === 'Enter' && entered.length === MAX_LEN) { submit(); }
-    } else if (event.key === 'Escape') {
-      lock();
+      else if (event.key === 'Escape') goPick();
+    } else if (!hubScreen.hidden && event.key === 'Escape') {
+      goPick();
     }
   });
 
-  // 같은 탭에서 새로 고치거나 돌아와도 다시 묻지 않음
+  /* 같은 탭에서 새로 고쳐도 다시 묻지 않음 */
   let saved = null;
   try { saved = sessionStorage.getItem(STORE_KEY); } catch (e) {}
-  const savedProfile = saved ? PROFILES.find(function (p) { return p.key === saved; }) : null;
+  const savedProfile = saved ? PROFILES.filter(function (p) { return p.key === saved; })[0] : null;
   if (savedProfile) enterSpace(savedProfile);
 })();
 </script>
