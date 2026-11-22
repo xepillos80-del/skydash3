@@ -2,2523 +2,383 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#05060f">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#e9f3ff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="description" content="하늘길을 달리며 별을 모으는 3D 무한 러너 게임">
-<title>스카이 대시 3D</title>
+<meta name="apple-mobile-web-app-title" content="놀이터">
+<meta name="description" content="우리 집 웹앱 놀이터 — 스카이 대시 3D, 3D 테트리스, 로봇 오목, 3D 산사">
+<title>우리 집 놀이터</title>
 <style>
   :root{
-    --cyan:#5ee7ff;
-    --violet:#9d7bff;
-    --gold:#ffd44d;
+    --ink:#1f2c44;
+    --ink-soft:#5d6d88;
+    --blue:#3f8cff;
+    --line:#e6ecf8;
   }
   *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-  html,body{
-    height:100%; margin:0; padding:0; overflow:hidden;
-    background:#05060f; color:#fff;
-    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Malgun Gothic","Segoe UI",Roboto,"Helvetica Neue",sans-serif;
-    -webkit-user-select:none; user-select:none;
-    overscroll-behavior:none;
+  html{ height:100%; }
+  body{
+    margin:0; min-height:100%;
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Malgun Gothic","맑은 고딕",system-ui,sans-serif;
+    color:var(--ink);
+    background:linear-gradient(165deg,#e9f3ff 0%,#f4f1ff 48%,#fff5ea 100%);
+    background-attachment:fixed;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  [hidden]{ display:none !important; }
+
+  /* 배경 장식 */
+  .sky{ position:fixed; inset:0; overflow:hidden; pointer-events:none; z-index:0; }
+  .sky i{ position:absolute; display:block; border-radius:50%; filter:blur(58px); opacity:.55; }
+  .sky .b1{ width:340px; height:340px; left:-90px; top:-70px; background:#bcd9ff; }
+  .sky .b2{ width:300px; height:300px; right:-80px; top:22%; background:#e2d4ff; }
+  .sky .b3{ width:320px; height:320px; left:20%; bottom:-120px; background:#ffe2c8; }
+
+  .screen{
+    position:relative; z-index:1;
+    min-height:100vh; min-height:100dvh;
+    display:flex; flex-direction:column; align-items:center;
+    padding:calc(20px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));
+  }
+
+  /* ── 잠금 화면 ── */
+  #lock{ justify-content:center; }
+  .lock-card{
+    width:100%; max-width:370px;
+    background:rgba(255,255,255,.9);
+    -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px);
+    border:1px solid rgba(255,255,255,.95);
+    border-radius:30px;
+    padding:26px 20px 22px;
+    text-align:center;
+    box-shadow:0 22px 50px rgba(41,74,132,.14);
+  }
+  .lock-card.err{ animation:shake .4s ease; }
+  @keyframes shake{
+    0%,100%{ transform:translateX(0); }
+    18%{ transform:translateX(-9px); }
+    38%{ transform:translateX(8px); }
+    58%{ transform:translateX(-6px); }
+    78%{ transform:translateX(4px); }
+  }
+  .lock-emoji{ font-size:36px; line-height:1; }
+  .lock-title{ margin:9px 0 0; font-size:23px; font-weight:800; letter-spacing:-.6px; }
+  .lock-sub{ margin:6px 0 0; font-size:13.5px; color:var(--ink-soft); line-height:1.45; }
+
+  .dots{ display:flex; justify-content:center; gap:15px; margin:20px 0 2px; }
+  .dot{
+    width:15px; height:15px; border-radius:50%;
+    border:2px solid #c9d7ec; background:transparent;
+    transition:background .14s ease, border-color .14s ease, transform .14s ease;
+  }
+  .dot.on{ background:var(--blue); border-color:var(--blue); transform:scale(1.1); }
+  .dots.err .dot{ border-color:#ff8aa4; }
+  .msg{ min-height:19px; margin:8px 0 10px; font-size:13px; font-weight:700; color:#e0557a; }
+
+  .pad{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .key{
+    height:62px; width:100%;
+    border:1px solid var(--line); border-radius:18px;
+    background:#fff; color:var(--ink);
+    font-family:inherit; font-size:25px; font-weight:700;
+    box-shadow:0 2px 6px rgba(41,74,132,.07);
+    cursor:pointer; touch-action:manipulation;
+    transition:transform .1s ease, background .12s ease;
+  }
+  .key:active{ background:#eef5ff; transform:scale(.96); }
+  .key.gap{ background:transparent; border-color:transparent; box-shadow:none; cursor:default; pointer-events:none; }
+  .key.del{ font-size:21px; color:#7b8ba6; }
+
+  /* ── 홈 허브 ── */
+  #hub{ justify-content:flex-start; }
+  .hub-shell{ width:100%; max-width:900px; }
+  .hub-head{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    margin:6px 2px 16px;
+  }
+  .hello{ margin:0 0 3px; font-size:13px; color:var(--ink-soft); letter-spacing:.2px; }
+  .who{ margin:0; font-size:26px; font-weight:800; letter-spacing:-.7px; }
+  .lock-btn{
+    flex:0 0 auto;
+    display:inline-flex; align-items:center; gap:6px;
+    padding:10px 14px;
+    border:1px solid var(--line); border-radius:14px;
+    background:rgba(255,255,255,.92); color:#4a5c78;
+    font-family:inherit; font-size:13.5px; font-weight:700;
+    cursor:pointer; touch-action:manipulation;
+    box-shadow:0 2px 8px rgba(41,74,132,.07);
+  }
+  .lock-btn:active{ transform:scale(.97); }
+
+  .cards{ display:grid; grid-template-columns:repeat(auto-fit,minmax(232px,1fr)); gap:13px; }
+  .card{
+    display:flex; align-items:center; gap:14px;
+    min-height:92px; padding:16px;
+    background:#fff; color:inherit; text-decoration:none;
+    border:1px solid rgba(255,255,255,.95); border-radius:22px;
+    box-shadow:0 8px 22px rgba(41,74,132,.10);
+    transition:transform .16s ease, box-shadow .16s ease;
     touch-action:manipulation;
   }
-  #game{
-    position:fixed; inset:0; display:block; width:100%; height:100%;
-    touch-action:none; outline:none;
+  .card:active{ transform:scale(.98); }
+  @media (hover:hover){
+    .card:hover{ transform:translateY(-3px); box-shadow:0 14px 30px rgba(41,74,132,.16); }
   }
-  #vignette{
-    position:fixed; inset:0; pointer-events:none; z-index:2;
-    background:radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 42%, rgba(0,0,0,.46) 100%);
+  .icon{
+    flex:0 0 auto; width:56px; height:56px; border-radius:18px;
+    display:grid; place-items:center; font-size:29px;
+    background:#f1f5fd;
   }
-  #flash{
-    position:fixed; inset:0; pointer-events:none; z-index:8;
-    background:rgba(255,70,96,0); transition:background .13s linear;
-  }
-  #flash.on{ background:rgba(255,70,96,.34); }
+  .card.sky    .icon{ background:linear-gradient(145deg,#e1efff,#c4e0ff); }
+  .card.tetris .icon{ background:linear-gradient(145deg,#ece7ff,#d8cfff); }
+  .card.omok   .icon{ background:linear-gradient(145deg,#ddf8ee,#c4efdf); }
+  .card.temple .icon{ background:linear-gradient(145deg,#e7ecff,#d3dcff); }
+  .card .text{ min-width:0; }
+  .name{ display:block; font-size:18.5px; font-weight:800; letter-spacing:-.35px; }
+  .desc{ display:block; margin-top:3px; font-size:13px; color:var(--ink-soft); line-height:1.35; }
 
-  /* ── 상단 상태 표시 ── */
-  #hud{
-    position:fixed; z-index:6; left:0; right:0; top:0;
-    padding:calc(10px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) 0 calc(14px + env(safe-area-inset-left));
-    display:flex; justify-content:space-between; align-items:flex-start;
-    pointer-events:none; opacity:0; transition:opacity .3s ease;
+  .tip{
+    margin:20px 4px 0; text-align:center;
+    font-size:13px; color:var(--ink-soft); line-height:1.5;
   }
-  #hud.show{ opacity:1; }
-  .score-wrap{ display:flex; flex-direction:column; gap:7px; }
-  .score-label{ font-size:10.5px; font-weight:700; letter-spacing:.22em; opacity:.7; }
-  #score{
-    font-size:40px; font-weight:900; line-height:1; letter-spacing:-.03em;
-    font-variant-numeric:tabular-nums;
-    text-shadow:0 3px 20px rgba(0,0,0,.55), 0 0 26px rgba(120,210,255,.25);
-  }
-  .chips{ display:flex; gap:6px; flex-wrap:wrap; }
-  .chip{
-    display:inline-flex; align-items:center; gap:5px;
-    padding:4px 10px; border-radius:999px; font-size:12.5px; font-weight:700;
-    color:#eaf2ff; background:rgba(8,12,26,.44);
-    border:1px solid rgba(255,255,255,.15);
-    -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
-    font-variant-numeric:tabular-nums;
-  }
-  .chip b{ color:#fff; font-weight:800; }
-  .hud-right{ display:flex; gap:8px; }
-  #hud.show .hud-right{ pointer-events:auto; }
-  .icon-btn{
-    display:inline-flex; align-items:center; justify-content:center; gap:5px;
-    height:38px; padding:0 12px; border-radius:12px; cursor:pointer;
-    font-family:inherit; font-size:12.5px; font-weight:800; color:#e9f3ff;
-    background:rgba(8,12,26,.45); border:1px solid rgba(255,255,255,.16);
-    -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
-    transition:transform .1s ease, background .18s ease;
-  }
-  .icon-btn:active{ transform:scale(.94); background:rgba(94,231,255,.22); }
-  #btn-pause{ width:44px; padding:0; font-size:16px; }
+  .tip b{ color:#3d6fb5; font-weight:700; }
 
-  /* ── 부스터 게이지 ── */
-  #boosts{
-    position:fixed; z-index:6; pointer-events:none;
-    left:calc(14px + env(safe-area-inset-left));
-    top:calc(114px + env(safe-area-inset-top));
-    display:flex; flex-direction:column; gap:6px;
-    opacity:0; transition:opacity .2s ease;
+  @media (max-width:380px){
+    .key{ height:56px; font-size:23px; border-radius:16px; }
+    .lock-card{ padding:22px 16px 18px; }
+    .who{ font-size:23px; }
+    .card{ min-height:84px; padding:14px; gap:12px; }
+    .icon{ width:50px; height:50px; font-size:26px; border-radius:16px; }
   }
-  #boosts.show{ opacity:1; }
-  .boost{
-    display:none; align-items:center; gap:8px;
-    padding:4px 10px 4px 9px; border-radius:999px;
-    font-size:11.5px; font-weight:800;
-    background:rgba(8,12,26,.5); border:1px solid rgba(255,255,255,.16);
-    -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
-  }
-  .boost.on{ display:flex; }
-  .boost i{
-    display:block; width:58px; height:4px; border-radius:3px;
-    background:rgba(255,255,255,.2); overflow:hidden;
-  }
-  .boost i::after{
-    content:""; display:block; height:100%; width:var(--p,0%);
-    background:currentColor; border-radius:3px;
-  }
-  #boost-magnet{ color:#ffb86b; }
-  #boost-shield{ color:#7fdcff; }
-
-  /* ── 알림 문구 ── */
-  #toast{
-    position:fixed; z-index:7; left:50%;
-    top:calc(92px + env(safe-area-inset-top));
-    transform:translate(-50%,-8px); opacity:0;
-    padding:8px 16px; border-radius:999px;
-    font-size:13.5px; font-weight:800; white-space:nowrap;
-    background:rgba(10,14,28,.68); border:1px solid rgba(255,255,255,.2);
-    -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
-    box-shadow:0 10px 30px rgba(0,0,0,.4);
-    transition:opacity .22s ease, transform .22s ease;
-    pointer-events:none;
-  }
-  #toast.show{ opacity:1; transform:translate(-50%,0); }
-
-  /* ── 카운트다운 ── */
-  #countdown{
-    position:fixed; inset:0; z-index:7; pointer-events:none;
-    display:flex; align-items:center; justify-content:center;
-    font-size:clamp(64px,18vw,120px); font-weight:900; letter-spacing:-.04em;
-    color:#fff; text-shadow:0 10px 50px rgba(0,0,0,.65), 0 0 40px rgba(94,231,255,.5);
-    opacity:0;
-  }
-  #countdown.pop{ animation:cdPop .6s ease-out forwards; }
-  @keyframes cdPop{
-    0%{ opacity:0; transform:scale(.55); }
-    35%{ opacity:1; transform:scale(1.08); }
-    100%{ opacity:0; transform:scale(1.25); }
-  }
-
-  /* ── 터치 조작 버튼 ── */
-  #touch{
-    position:fixed; z-index:6; left:0; right:0;
-    bottom:calc(16px + env(safe-area-inset-bottom));
-    display:none; justify-content:center; gap:12px; padding:0 18px;
-    pointer-events:none;
-  }
-  #touch.show{ display:flex; }
-  #touch button{
-    pointer-events:auto; -webkit-appearance:none; appearance:none;
-    width:82px; height:66px; border-radius:22px;
-    display:flex; align-items:center; justify-content:center;
-    font-family:inherit; font-size:24px; font-weight:800; color:#eaf2ff;
-    background:rgba(10,16,34,.42); border:1px solid rgba(255,255,255,.22);
-    -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px);
-    box-shadow:0 10px 26px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.14);
-    transition:transform .1s ease, background .15s ease;
-  }
-  #touch button:active{ transform:scale(.93); background:rgba(94,231,255,.26); }
-  #touch button[data-act="jump"]{ width:104px; background:rgba(94,231,255,.18); }
-
-  /* ── 화면(오버레이) ── */
-  .screen{
-    position:fixed; inset:0; z-index:10;
-    display:flex; align-items:center; justify-content:center;
-    padding:22px;
-    background:radial-gradient(ellipse at 50% 38%, rgba(12,18,40,.34), rgba(3,4,12,.74));
-    opacity:0; pointer-events:none;
-    transition:opacity .3s ease;
-  }
-  .screen.show{ opacity:1; pointer-events:auto; }
-  .card{
-    width:100%; max-width:400px; padding:26px 22px 22px;
-    max-height:calc(100vh - 44px); overflow-y:auto;
-    -webkit-overflow-scrolling:touch;
-    border-radius:26px; text-align:center;
-    background:linear-gradient(160deg, rgba(22,28,54,.88), rgba(9,11,26,.94));
-    border:1px solid rgba(255,255,255,.14);
-    box-shadow:0 26px 74px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.12);
-    -webkit-backdrop-filter:blur(20px) saturate(1.3); backdrop-filter:blur(20px) saturate(1.3);
-    transform:translateY(14px) scale(.98);
-    transition:transform .36s cubic-bezier(.2,.85,.25,1);
-  }
-  .screen.show .card{ transform:none; }
-  .badge{
-    display:inline-block; padding:5px 12px; border-radius:999px;
-    font-size:10.5px; font-weight:800; letter-spacing:.2em;
-    color:#9fe9ff; background:rgba(94,231,255,.12);
-    border:1px solid rgba(94,231,255,.32);
-  }
-  .card h1{
-    margin:13px 0 6px; font-size:34px; line-height:1.12; font-weight:900; letter-spacing:-.035em;
-    background:linear-gradient(100deg,#93ecff,#c9b7ff 52%,#ffe28c);
-    -webkit-background-clip:text; background-clip:text; color:transparent;
-  }
-  .tagline{ margin:0 0 16px; font-size:13.5px; line-height:1.55; color:#b9c6e6; }
-  .best-row{
-    display:flex; align-items:center; justify-content:center; gap:8px;
-    margin-bottom:16px; padding:9px 14px; border-radius:14px;
-    font-size:12.5px; font-weight:700; color:#c9d7f5;
-    background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
-  }
-  .best-row b{ font-size:16px; color:#ffd97a; font-variant-numeric:tabular-nums; }
-  .diff{ display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin:0 0 12px; }
-  .diff button{
-    -webkit-appearance:none; appearance:none; cursor:pointer; font-family:inherit;
-    display:flex; flex-direction:column; align-items:center; gap:3px;
-    padding:10px 4px 9px; border-radius:14px;
-    background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.13);
-    transition:transform .1s ease, background .18s ease, border-color .18s ease, box-shadow .18s ease;
-  }
-  .diff button b{ font-size:14.5px; font-weight:900; letter-spacing:-.01em; color:#dce8ff; }
-  .diff button span{ font-size:10.5px; font-weight:700; color:#8fa1c4; }
-  .diff button:active{ transform:scale(.96); }
-  .diff button.on{
-    background:linear-gradient(150deg, rgba(94,231,255,.24), rgba(127,108,255,.26));
-    border-color:rgba(94,231,255,.62);
-    box-shadow:inset 0 0 0 1px rgba(94,231,255,.26), 0 8px 22px rgba(90,170,255,.18);
-  }
-  .diff button.on b{ color:#fff; }
-  .diff button.on span{ color:#c6eaff; }
-  .btn{
-    display:block; width:100%; padding:15px 18px; border:0; border-radius:16px;
-    font-family:inherit; font-size:16px; font-weight:900; letter-spacing:-.01em;
-    cursor:pointer; color:#06111f;
-    background:linear-gradient(100deg,#43dcff,#7f6cff);
-    box-shadow:0 12px 30px rgba(90,170,255,.32);
-    transition:transform .12s ease, filter .2s ease, box-shadow .2s ease;
-  }
-  .btn:active{ transform:scale(.975); }
-  .btn:hover{ filter:brightness(1.06); }
-  .btn.ghost{
-    margin-top:9px; padding:12px 14px; font-size:14px; font-weight:800;
-    color:#dfe9ff; background:rgba(255,255,255,.07);
-    border:1px solid rgba(255,255,255,.16); box-shadow:none;
-  }
-  .btn.ghost:hover{ background:rgba(255,255,255,.12); filter:none; }
-  .row{ display:flex; gap:9px; margin-top:9px; }
-  .row .btn{ margin-top:0; }
-  .howto{
-    display:none; margin-top:12px; padding:12px 14px; border-radius:14px;
-    font-size:12.5px; line-height:1.7; color:#b9c6e6; text-align:left;
-    background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.1);
-  }
-  .howto.show{ display:block; }
-  .howto p{ margin:0 0 6px; }
-  .howto p:last-child{ margin-bottom:0; }
-  .howto b{ color:#e6f4ff; }
-  .howto kbd{
-    display:inline-block; padding:1px 6px; margin:0 1px; border-radius:5px;
-    font-family:inherit; font-size:11.5px; font-weight:700; color:#eaf6ff;
-    background:rgba(255,255,255,.11); border:1px solid rgba(255,255,255,.2);
-  }
-  .small-note kbd{
-    display:inline-block; padding:1px 6px; border-radius:5px;
-    font-family:inherit; font-size:11px; font-weight:700; color:#eaf6ff;
-    background:rgba(255,255,255,.11); border:1px solid rgba(255,255,255,.2);
-  }
-  .stats{ display:flex; gap:9px; margin:16px 0 8px; }
-  .stat{
-    flex:1; padding:12px 6px; border-radius:16px;
-    background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
-  }
-  .stat span{ display:block; font-size:10.5px; font-weight:800; letter-spacing:.14em; color:#98a9cd; }
-  .stat b{ display:block; margin-top:5px; font-size:23px; font-weight:900; font-variant-numeric:tabular-nums; }
-  .new-record{
-    display:none; align-items:center; justify-content:center; gap:6px;
-    margin:0 0 10px; padding:8px; border-radius:12px;
-    font-size:13px; font-weight:900; color:#1a1206;
-    background:linear-gradient(100deg,#ffe07a,#ffb43d);
-    box-shadow:0 8px 24px rgba(255,180,60,.3);
-  }
-  .new-record.show{ display:flex; animation:recPop .5s cubic-bezier(.2,.9,.3,1); }
-  @keyframes recPop{ 0%{ transform:scale(.86); opacity:0; } 100%{ transform:scale(1); opacity:1; } }
-  .small-note{ margin:12px 0 0; font-size:11.5px; line-height:1.6; color:#8d9cbe; }
-  .err-icon{ font-size:40px; line-height:1; margin-bottom:6px; }
-  @media (max-width:360px){
-    .card{ padding:22px 17px 18px; }
-    .card h1{ font-size:28px; }
-    #score{ font-size:34px; }
-    .stat b{ font-size:20px; }
-  }
-  @media (max-height:560px){
-    .card{ padding:18px 16px 16px; }
-    .card h1{ margin-top:8px; font-size:26px; }
-    .tagline{ margin-bottom:10px; }
-    .best-row{ margin-bottom:10px; }
+  @media (prefers-reduced-motion:reduce){
+    *{ animation:none !important; transition:none !important; }
   }
 </style>
 </head>
 <body>
-<canvas id="game" aria-label="3D 게임 화면"></canvas>
-<div id="vignette"></div>
-<div id="flash"></div>
 
-<div id="hud">
-  <div class="score-wrap">
-    <div class="score-label">점수</div>
-    <div id="score">0</div>
-    <div class="chips">
-      <div class="chip">&#11088; <b id="coins">0</b></div>
-      <div class="chip">최고 <b id="best">0</b></div>
-      <div class="chip" id="chip-diff">쉬움</div>
+<div class="sky" aria-hidden="true"><i class="b1"></i><i class="b2"></i><i class="b3"></i></div>
+
+<!-- ══════════ 잠금 화면 ══════════ -->
+<main id="lock" class="screen">
+  <section class="lock-card" id="lockCard">
+    <div class="lock-emoji" aria-hidden="true">🔒</div>
+    <h1 class="lock-title">우리 집 놀이터</h1>
+    <p class="lock-sub">4자리 비밀번호를 눌러 주세요</p>
+
+    <div class="dots" id="dots" aria-live="polite" aria-label="입력한 숫자">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
     </div>
-  </div>
-  <div class="hud-right">
-    <button id="btn-sound" class="icon-btn" type="button" aria-label="소리 켜기 또는 끄기">&#128266; 소리</button>
-    <button id="btn-pause" class="icon-btn" type="button" aria-label="일시정지">&#10074;&#10074;</button>
-  </div>
-</div>
+    <div class="msg" id="msg" role="status"></div>
 
-<div id="boosts">
-  <div id="boost-magnet" class="boost"><span>&#129522; 자석</span><i></i></div>
-  <div id="boost-shield" class="boost"><span>&#128737; 무적</span><i></i></div>
-</div>
-
-<div id="toast"></div>
-<div id="countdown"></div>
-
-<div id="touch">
-  <button type="button" id="touch-left" data-act="left" aria-label="왼쪽으로 이동">&#9664;</button>
-  <button type="button" id="touch-jump" data-act="jump" aria-label="점프">&#9650;</button>
-  <button type="button" id="touch-right" data-act="right" aria-label="오른쪽으로 이동">&#9654;</button>
-</div>
-
-<div id="screen-loading" class="screen show">
-  <div class="card" style="max-width:320px">
-    <div class="badge">준비 중</div>
-    <h1>스카이 대시 3D</h1>
-    <p class="tagline" style="margin-bottom:0">하늘길을 준비하고 있어요&#8230;</p>
-  </div>
-</div>
-
-<div id="screen-title" class="screen">
-  <div class="card">
-    <div class="badge">3D 무한 러너</div>
-    <h1>스카이 대시 3D</h1>
-    <p class="tagline">하늘길을 달리며 별을 모으세요.<br>빨라질수록 하늘이 바뀝니다.</p>
-    <div class="best-row">최고 기록 <b id="title-best">0</b></div>
-    <div class="diff" role="group" aria-label="난이도 선택">
-      <button id="btn-diff-easy" type="button" aria-pressed="true"><b>쉬움</b><span>느긋하게</span></button>
-      <button id="btn-diff-normal" type="button" aria-pressed="false"><b>보통</b><span>적당하게</span></button>
-      <button id="btn-diff-hard" type="button" aria-pressed="false"><b>어려움</b><span>스릴 있게</span></button>
+    <div class="pad" id="pad">
+      <button class="key" type="button" data-key="1">1</button>
+      <button class="key" type="button" data-key="2">2</button>
+      <button class="key" type="button" data-key="3">3</button>
+      <button class="key" type="button" data-key="4">4</button>
+      <button class="key" type="button" data-key="5">5</button>
+      <button class="key" type="button" data-key="6">6</button>
+      <button class="key" type="button" data-key="7">7</button>
+      <button class="key" type="button" data-key="8">8</button>
+      <button class="key" type="button" data-key="9">9</button>
+      <span class="key gap" aria-hidden="true"></span>
+      <button class="key" type="button" data-key="0">0</button>
+      <button class="key del" type="button" id="delBtn" aria-label="한 자리 지우기">⌫</button>
     </div>
-    <button id="btn-start" class="btn" type="button">게임 시작</button>
-    <div class="row">
-      <button id="btn-howto" class="btn ghost" type="button" style="margin-top:0">조작 안내</button>
-      <button id="btn-touch" class="btn ghost" type="button" style="margin-top:0">터치 버튼: 자동</button>
-    </div>
-    <div id="howto" class="howto">
-      <p><b>컴퓨터</b> <kbd>&#8592;</kbd> <kbd>&#8594;</kbd> 좌우 이동 &#183; <kbd>&#8593;</kbd> 또는 <kbd>Space</kbd> 점프 &#183; <kbd>P</kbd> 일시정지</p>
-      <p><b>모바일</b> 좌우로 밀기 &#183; 위로 밀거나 화면을 콕 눌러 점프</p>
-      <p><b>요령</b> 벽은 옆으로 피하고, 낮은 바리케이드는 뛰어넘고, 파란 아치 아래에서는 점프하지 마세요. 자석은 별을 끌어당기고, 방패는 한 번 부딪혀도 막아 줍니다.</p>
-      <p><b>난이도</b> 쉬움은 천천히 시작해 장애물 간격이 넓고 부스터가 자주 나옵니다. 어려움은 처음부터 빠릅니다.</p>
-    </div>
-    <p class="small-note">별을 모을수록 점수가 쌓이고, 달릴수록 빨라집니다.</p>
-  </div>
-</div>
+  </section>
+</main>
 
-<div id="screen-pause" class="screen">
-  <div class="card">
-    <div class="badge">잠시 멈춤</div>
-    <h1>일시정지</h1>
-    <p class="tagline" style="margin-bottom:14px">숨을 고르고 이어서 달려요.</p>
-    <button id="btn-resume" class="btn" type="button">계속하기</button>
-    <div class="row">
-      <button id="btn-restart" class="btn ghost" type="button" style="margin-top:0">다시 시작</button>
-      <button id="btn-home-pause" class="btn ghost" type="button" style="margin-top:0">메인 화면</button>
-    </div>
-    <p class="small-note"><kbd>P</kbd> 키를 다시 누르면 바로 이어집니다.</p>
-  </div>
-</div>
+<!-- ══════════ 홈 허브 ══════════ -->
+<main id="hub" class="screen" hidden>
+  <div class="hub-shell">
+    <header class="hub-head">
+      <div>
+        <p class="hello">안녕하세요</p>
+        <h1 class="who" id="who">놀이터</h1>
+      </div>
+      <button class="lock-btn" type="button" id="lockBtn">🔒 잠그기</button>
+    </header>
 
-<div id="screen-over" class="screen">
-  <div class="card">
-    <div class="badge">기록</div>
-    <h1>게임 오버</h1>
-    <div id="new-record" class="new-record">&#127881; 새 최고 기록!</div>
-    <div class="stats">
-      <div class="stat"><span>점수</span><b id="over-score">0</b></div>
-      <div class="stat"><span>별</span><b id="over-coins">0</b></div>
-      <div class="stat"><span>최고</span><b id="over-best">0</b></div>
-    </div>
-    <button id="btn-again" class="btn" type="button">다시 하기</button>
-    <p id="over-diff" class="small-note" style="margin-top:10px">난이도 쉬움</p>
-    <button id="btn-home-over" class="btn ghost" type="button">메인 화면</button>
-  </div>
-</div>
+    <section class="cards" aria-label="놀이 목록">
+      <a class="card sky" href="./skydash.html">
+        <span class="icon" aria-hidden="true">🚀</span>
+        <span class="text">
+          <span class="name">스카이 대시 3D</span>
+          <span class="desc">하늘길 3D 달리기 · 쉬움 · 보통 · 어려움</span>
+        </span>
+      </a>
 
-<div id="screen-error" class="screen">
-  <div class="card">
-    <div class="err-icon">&#9888;&#65039;</div>
-    <h1 style="font-size:24px">게임을 불러오지 못했어요</h1>
-    <p id="error-msg" class="tagline" style="margin-top:10px">인터넷 연결을 확인한 뒤 다시 시도해 주세요.</p>
-    <button id="btn-retry" class="btn" type="button">다시 시도</button>
+      <a class="card tetris" href="./tetris.html">
+        <span class="icon" aria-hidden="true">🧩</span>
+        <span class="text">
+          <span class="name">3D 테트리스</span>
+          <span class="desc">입체 블록 퍼즐</span>
+        </span>
+      </a>
+
+      <a class="card omok" href="./omok.html">
+        <span class="icon" aria-hidden="true">🤖</span>
+        <span class="text">
+          <span class="name">로봇 오목</span>
+          <span class="desc">관절팔 로봇과 오목 대국</span>
+        </span>
+      </a>
+
+      <a class="card temple" href="./temple.html">
+        <span class="icon" aria-hidden="true">🏯</span>
+        <span class="text">
+          <span class="name">3D 산사</span>
+          <span class="desc">눈 내리는 산사 · 법당 구경</span>
+        </span>
+      </a>
+    </section>
+
+    <p class="tip">💡 태블릿이나 폰에서 <b>홈 화면에 추가</b>를 하면 앱처럼 바로 켤 수 있어요.</p>
   </div>
-</div>
+</main>
 
 <script>
-/* ══════════════════════════════════════════════════════════════
-   스카이 대시 3D — 단일 파일 3D 무한 러너
-   Three.js + Web Audio API (외부 음원 없음)
-   ══════════════════════════════════════════════════════════════ */
+/* ─────────────────────────────────────────────
+   설정 — 여기만 고치면 됩니다.
+
+   · 프로필(공간)마다 4자리 숫자 비밀번호를 하나씩 둡니다.
+   · 비밀번호는 숫자 4자리만 쓰세요. (예: '1234')
+   · 지금 값은 예시용 임시 번호입니다. 원하는 번호로 바꿔 주세요.
+   · 이름과 번호 외에 다른 개인정보(생일, 전화번호 등)는 넣지 마세요.
+     이 페이지는 누구나 볼 수 있는 공개 주소에 올라갑니다.
+   · 이 잠금은 장난으로 눌리는 것을 막는 가벼운 잠금입니다.
+     페이지 소스를 열면 번호를 볼 수 있으니, 중요한 자료 보관용은 아닙니다.
+   ───────────────────────────────────────────── */
+const PROFILES = [
+  { key: 'dad', name: '아빠', pin: '1234' },
+  { key: 'kid', name: '딸',   pin: '0000' }
+];
+
 (function () {
   'use strict';
 
-  /* ────────────────────────── 기본 참조 ────────────────────────── */
-  var $ = function (id) { return document.getElementById(id); };
-
-  var UI = {
-    canvas: $('game'),
-    hud: $('hud'),
-    score: $('score'),
-    coins: $('coins'),
-    best: $('best'),
-    boosts: $('boosts'),
-    boostMagnet: $('boost-magnet'),
-    boostShield: $('boost-shield'),
-    toast: $('toast'),
-    countdown: $('countdown'),
-    touch: $('touch'),
-    flash: $('flash'),
-    screenTitle: $('screen-title'),
-    screenPause: $('screen-pause'),
-    screenOver: $('screen-over'),
-    screenLoading: $('screen-loading'),
-    screenError: $('screen-error'),
-    titleBest: $('title-best'),
-    overScore: $('over-score'),
-    overCoins: $('over-coins'),
-    overBest: $('over-best'),
-    newRecord: $('new-record'),
-    howto: $('howto'),
-    errMsg: $('error-msg'),
-    chipDiff: $('chip-diff'),
-    overDiff: $('over-diff'),
-    btnDiffEasy: $('btn-diff-easy'),
-    btnDiffNormal: $('btn-diff-normal'),
-    btnDiffHard: $('btn-diff-hard'),
-    btnSound: $('btn-sound'),
-    btnPause: $('btn-pause'),
-    btnStart: $('btn-start'),
-    btnHowto: $('btn-howto'),
-    btnTouch: $('btn-touch'),
-    btnResume: $('btn-resume'),
-    btnRestart: $('btn-restart'),
-    btnHomePause: $('btn-home-pause'),
-    btnAgain: $('btn-again'),
-    btnHomeOver: $('btn-home-over'),
-    btnRetry: $('btn-retry')
-  };
-
-  var SCREEN_IDS = ['screen-title', 'screen-pause', 'screen-over', 'screen-loading', 'screen-error'];
-
-  function showScreen(id) {
-    for (var i = 0; i < SCREEN_IDS.length; i++) {
-      var node = $(SCREEN_IDS[i]);
-      if (!node) continue;
-      if (SCREEN_IDS[i] === id) node.classList.add('show');
-      else node.classList.remove('show');
-    }
-  }
-  function hideAllScreens() { showScreen(null); }
-
-  /* ────────────────────────── 작은 도구들 ────────────────────────── */
-  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
-  function lerp(a, b, t) { return a + (b - a) * t; }
-  function smoothstep(t) { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); }
-  function rand(a, b) { return a + Math.random() * (b - a); }
-  function randInt(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
-
-  function fmt(n) {
-    var s = String(Math.floor(n));
-    return s.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  }
-
-  /* ────────────────────────── 저장소 ────────────────────────── */
-  var KEY_BEST = 'skyDash3D.best';
-  var KEY_SOUND = 'skyDash3D.sound';
-  var KEY_TOUCH = 'skyDash3D.touch';
-  var KEY_DIFF = 'skyDash3D.diff';
-
-  function storeGet(key, fallback) {
-    try {
-      var v = window.localStorage.getItem(key);
-      return (v === null || v === undefined) ? fallback : v;
-    } catch (e) { return fallback; }
-  }
-  function storeSet(key, value) {
-    try { window.localStorage.setItem(key, String(value)); } catch (e) { /* 저장이 막힌 환경 */ }
-  }
-
-  /* ══════════════════════════ 소리 (Web Audio 합성) ══════════════════════════ */
-  var Sound = (function () {
-    var ctx = null, master = null, musicBus = null, sfxBus = null;
-    var enabled = storeGet(KEY_SOUND, 'on') !== 'off';
-    var unlocked = false;
-    var nextNote = 0, stepIndex = 0, stepDur = 0.142;
-
-    var SCALE = [0, 3, 5, 7, 10, 12, 15, 17];
-    var MELODY = [0, 2, 4, 2, 5, 4, 2, 0, 3, 2, 0, 2, 4, 5, 7, 5,
-                  4, 2, 0, 2, 3, 4, 5, 2, 4, 2, 0, -1, 2, 4, 5, 4];
-    var BASS = [0, 0, 3, 3, 4, 4, 2, 2];
-
-    function ensure() {
-      if (ctx) return ctx;
-      var AC = window.AudioContext || window.webkitAudioContext;
-      if (!AC) return null;
-      try { ctx = new AC(); } catch (e) { return null; }
-      try {
-        master = ctx.createGain();
-        master.gain.value = enabled ? 0.6 : 0.0001;
-        master.connect(ctx.destination);
-        musicBus = ctx.createGain();
-        musicBus.gain.value = 0.16;
-        musicBus.connect(master);
-        sfxBus = ctx.createGain();
-        sfxBus.gain.value = 0.5;
-        sfxBus.connect(master);
-      } catch (e) { return null; }
-      return ctx;
-    }
-
-    function unlock() {
-      var c = ensure();
-      if (!c) return;
-      unlocked = true;
-      try {
-        if (c.state === 'suspended' && c.resume) c.resume();
-      } catch (e) { /* 무시 */ }
-    }
-
-    function tone(o) {
-      var c = ensure();
-      if (!c || !enabled || !unlocked) return;
-      var t0 = c.currentTime + (o.delay || 0);
-      var dur = o.dur || 0.12;
-      try {
-        var osc = c.createOscillator();
-        var g = c.createGain();
-        osc.type = o.type || 'sine';
-        osc.frequency.setValueAtTime(o.f0, t0);
-        if (o.f1 && o.f1 !== o.f0) {
-          osc.frequency.exponentialRampToValueAtTime(Math.max(24, o.f1), t0 + dur);
-        }
-        var peak = o.gain || 0.22;
-        g.gain.setValueAtTime(0.0001, t0);
-        g.gain.exponentialRampToValueAtTime(peak, t0 + 0.014);
-        g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-        osc.connect(g);
-        g.connect(o.bus === 'music' ? musicBus : sfxBus);
-        osc.start(t0);
-        osc.stop(t0 + dur + 0.03);
-      } catch (e) { /* 소리 실패가 게임을 멈추지 않게 */ }
-    }
-
-    function noise(o) {
-      var c = ensure();
-      if (!c || !enabled || !unlocked) return;
-      try {
-        var dur = o.dur || 0.2;
-        var len = Math.max(1, Math.floor(c.sampleRate * dur));
-        var buf = c.createBuffer(1, len, c.sampleRate);
-        var data = buf.getChannelData(0);
-        for (var i = 0; i < len; i++) {
-          var k = 1 - i / len;
-          data[i] = (Math.random() * 2 - 1) * k * k;
-        }
-        var src = c.createBufferSource();
-        src.buffer = buf;
-        var flt = c.createBiquadFilter();
-        flt.type = o.filter || 'lowpass';
-        flt.frequency.value = o.cut || 1800;
-        var g = c.createGain();
-        g.gain.value = o.gain || 0.3;
-        src.connect(flt);
-        flt.connect(g);
-        g.connect(sfxBus || c.destination);
-        src.start(c.currentTime + (o.delay || 0));
-      } catch (e) { /* 무시 */ }
-    }
-
-    function scheduleStep(i, t) {
-      var c = ctx;
-      if (!c) return;
-      var m = MELODY[i];
-      var sp = (Game.speed - CFG.startSpeed) / (CFG.maxSpeed - CFG.startSpeed);
-      var pitch = clamp(1 + sp * 0.06, 1, 1.12);
-      var delay = Math.max(0, t - c.currentTime);
-      if (m >= 0) {
-        var f = 262 * Math.pow(2, SCALE[m % SCALE.length] / 12);
-        tone({ type: 'triangle', f0: f * pitch, dur: stepDur * 0.85, gain: 0.085, delay: delay, bus: 'music' });
-      }
-      if (i % 8 === 0) {
-        var b = 65.4 * Math.pow(2, BASS[(i / 8) % BASS.length] / 12);
-        tone({ type: 'sine', f0: b, dur: 0.34, gain: 0.15, delay: delay, bus: 'music' });
-      }
-      if (i % 4 === 2) {
-        noise({ dur: 0.045, cut: 6500, gain: 0.045, filter: 'highpass', delay: delay });
-      }
-    }
-
-    var api = {
-      unlock: unlock,
-      enabled: function () { return enabled; },
-      setEnabled: function (on) {
-        enabled = !!on;
-        storeSet(KEY_SOUND, enabled ? 'on' : 'off');
-        if (master && ctx) {
-          try { master.gain.setTargetAtTime(enabled ? 0.6 : 0.0001, ctx.currentTime, 0.02); }
-          catch (e) { try { master.gain.value = enabled ? 0.6 : 0.0001; } catch (e2) { /* 무시 */ } }
-        }
-        if (enabled) unlock();
-      },
-      coin: function () {
-        tone({ type: 'triangle', f0: 880, f1: 1320, dur: 0.1, gain: 0.18 });
-        tone({ type: 'sine', f0: 1760, dur: 0.07, gain: 0.09, delay: 0.05 });
-      },
-      jump: function () {
-        tone({ type: 'sine', f0: 320, f1: 760, dur: 0.14, gain: 0.18 });
-      },
-      land: function () {
-        noise({ dur: 0.09, cut: 900, gain: 0.1 });
-      },
-      booster: function () {
-        var notes = [523, 659, 784, 1046];
-        for (var i = 0; i < notes.length; i++) {
-          tone({ type: 'triangle', f0: notes[i], dur: 0.13, gain: 0.16, delay: i * 0.06 });
-        }
-      },
-      shieldHit: function () {
-        tone({ type: 'square', f0: 520, f1: 260, dur: 0.22, gain: 0.16 });
-        noise({ dur: 0.18, cut: 2600, gain: 0.14, filter: 'highpass' });
-      },
-      crash: function () {
-        noise({ dur: 0.5, cut: 900, gain: 0.4 });
-        tone({ type: 'sawtooth', f0: 210, f1: 48, dur: 0.5, gain: 0.28 });
-        tone({ type: 'square', f0: 140, f1: 60, dur: 0.34, gain: 0.14, delay: 0.04 });
-      },
-      start: function () {
-        tone({ type: 'triangle', f0: 523, dur: 0.12, gain: 0.18 });
-        tone({ type: 'triangle', f0: 784, dur: 0.16, gain: 0.18, delay: 0.1 });
-      },
-      tick: function (playing) {
-        if (!enabled || !unlocked || !playing) return;
-        var c = ensure();
-        if (!c) return;
-        var now = c.currentTime;
-        if (nextNote < now) nextNote = now + 0.08;
-        var guard = 0;
-        while (nextNote < now + 0.24 && guard < 12) {
-          scheduleStep(stepIndex, nextNote);
-          nextNote += stepDur;
-          stepIndex = (stepIndex + 1) % MELODY.length;
-          guard++;
-        }
-      }
-    };
-
-    return api;
-  })();
-
-  /* ══════════════════════════ 난이도 ══════════════════════════ */
-  var DIFF_ORDER = ['easy', 'normal', 'hard'];
-  var DIFFS = {
-    easy: {
-      label: '쉬움',
-      startSpeed: 13, maxSpeed: 34, speedGain: 0.0100,
-      gapMin: 1.4, gapMax: 2.2, gapFloor: 18, gapFirst: 78,
-      itemFirst: 150, itemGapMin: 220, itemGapRange: 180,
-      patterns: [
-        ['single', 0.34], ['double', 0.18], ['jumpRow', 0.15],
-        ['arch', 0.07], ['wallGuide', 0.16], ['twoWaves', 0.10]
-      ]
-    },
-    normal: {
-      label: '보통',
-      startSpeed: 17, maxSpeed: 44, speedGain: 0.0120,
-      gapMin: 1.15, gapMax: 1.9, gapFloor: 24, gapFirst: 64,
-      itemFirst: 220, itemGapMin: 280, itemGapRange: 220,
-      patterns: [
-        ['single', 0.28], ['double', 0.24], ['jumpRow', 0.15],
-        ['arch', 0.11], ['wallGuide', 0.13], ['twoWaves', 0.09]
-      ]
-    },
-    hard: {
-      label: '어려움',
-      startSpeed: 21, maxSpeed: 54, speedGain: 0.0135,
-      gapMin: 0.95, gapMax: 1.75, gapFloor: 30, gapFirst: 54,
-      itemFirst: 300, itemGapMin: 340, itemGapRange: 260,
-      patterns: [
-        ['single', 0.24], ['double', 0.28], ['jumpRow', 0.15],
-        ['arch', 0.14], ['wallGuide', 0.11], ['twoWaves', 0.08]
-      ]
-    }
-  };
-
-  /* ══════════════════════════ 설정값 ══════════════════════════ */
-  var CFG = {
-    lanes: [-2.25, 0, 2.25],
-    diff: DIFFS.easy,
-    startSpeed: DIFFS.easy.startSpeed,
-    maxSpeed: DIFFS.easy.maxSpeed,
-    speedGain: DIFFS.easy.speedGain,
-    gravity: 54,
-    jumpVel: 15.8,
-    playerHalfX: 0.42,
-    playerHalfZ: 0.36,
-    playerHeight: 1.52,
-    spawnZ: -170,
-    coinScore: 10,
-    magnetTime: 8,
-    shieldTime: 6.5,
-    phaseLen: 1500,
-    archClear: 1.78,
-    barrierTop: 0.62
-  };
-
-  var PLAYER_HALF_Z = CFG.playerHalfZ;
-
-  /* ══════════════════════════ 게임 상태 ══════════════════════════ */
-  var Game = {
-    inited: false,
-    mode: 'boot',            /* boot | menu | countdown | playing | paused | over */
-    score: 0,
-    distance: 0,
-    speed: 0,
-    coinCount: 0,
-    best: 0,
-    elapsed: 0,
-    phaseDist: 0,
-    distSinceSpawn: 0,
-    spawnGap: 48,
-    coinGap: 60,
-    nextItemAt: 280,
-    countdownT: 0,
-    countdownStep: -1,
-    hudT: 0,
-    overT: 0,
-    shake: 0,
-    flashT: 0,
-    toastT: 0,
-    lastTs: 0,
-    soundOn: true,
-    touchMode: 'auto',
-    difficulty: 'easy',
-    loadFailed: false,
-    lastPattern: '',
-    rafId: 0,
-    started: false
-  };
-
-  Game.best = parseInt(storeGet(KEY_BEST, '0'), 10) || 0;
-  Game.soundOn = Sound.enabled();
-
-  /* ══════════════════════════ Three.js 세계 ══════════════════════════ */
-  var renderer = null, scene = null, camera = null;
-  var sky = null, skyUniforms = null, stars = null, starMat = null;
-  var sunMesh = null, sunGlow = null, sunMat = null, glowMat = null;
-  var ambLight = null, hemiLight = null, dirLight = null, rimLight = null;
-  var cloudMat = null, cloudList = [], propList = [], trackSegs = [];
-  var neonMats = [];
-  var obstacles = [], coins = [], items = [], sparks = [];
-  var pools = { wall: [], barrier: [], arch: [], coin: [], magnet: [], shield: [] };
-
-  var SEG_LEN = 26, SEG_COUNT = 16;
-
-  var player = {
-    group: null, rig: null, shadow: null, aura: null, magnetRing: null,
-    x: 0, y: 0, vy: 0, lane: 1,
-    onGround: true, runT: 0, lean: 0, landT: 0, dead: false,
-    shield: 0, magnet: 0,
-    armL: null, armR: null, legL: null, legR: null, body: null, head: null
-  };
-
-  var PAL = [];
-  var skyTop = null, skyBottom = null, fogColor = null;
-
-  function initPalettes() {
-    function C(hex) { return new THREE.Color(hex); }
-    PAL = [
-      {
-        name: '낮',
-        top: C(0x2f8fe6), bottom: C(0xd8ecff), fog: C(0xcde4f8),
-        fogNear: 45, fogFar: 260,
-        amb: 1.0, ambColor: C(0xc3dcff),
-        dir: C(0xfff4dc), dirInt: 1.15,
-        sun: C(0xfff2c4), sunY: 150, sunX: -120, night: 0,
-        cloud: C(0xffffff), cloudOp: 0.92
-      },
-      {
-        name: '노을',
-        top: C(0x2b2459), bottom: C(0xff9a5f), fog: C(0xef9d6c),
-        fogNear: 32, fogFar: 215,
-        amb: 0.66, ambColor: C(0xffc4a2),
-        dir: C(0xffa866), dirInt: 1.0,
-        sun: C(0xffae63), sunY: 34, sunX: 150, night: 0.3,
-        cloud: C(0xffc7a8), cloudOp: 0.8
-      },
-      {
-        name: '밤',
-        top: C(0x03030d), bottom: C(0x1a1140), fog: C(0x0d0a22),
-        fogNear: 24, fogFar: 175,
-        amb: 0.42, ambColor: C(0x9b86ff),
-        dir: C(0x8f6dff), dirInt: 0.7,
-        sun: C(0xd9e6ff), sunY: 190, sunX: 90, night: 1,
-        cloud: C(0x5b4f96), cloudOp: 0.55
-      }
-    ];
-    skyTop = new THREE.Color(0x2f8fe6);
-    skyBottom = new THREE.Color(0xd8ecff);
-    fogColor = new THREE.Color(0xcde4f8);
-  }
-
-  function initRenderer() {
-    renderer = new THREE.WebGLRenderer({
-      canvas: UI.canvas,
-      antialias: true,
-      alpha: false,
-      powerPreference: 'high-performance'
-    });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    renderer.setSize(window.innerWidth, window.innerHeight, false);
-    renderer.shadowMap.enabled = false;
-
-    scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(0xcde4f8, 45, 260);
-
-    camera = new THREE.PerspectiveCamera(64, window.innerWidth / Math.max(1, window.innerHeight), 0.1, 2200);
-    camera.position.set(0, 4.5, 8.4);
-    camera.lookAt(0, 1.4, -9);
-    adjustCamera();
-  }
-
-  function adjustCamera() {
-    if (!camera) return;
-    var aspect = window.innerWidth / Math.max(1, window.innerHeight);
-    camera.aspect = aspect;
-    camera.fov = aspect < 0.85 ? 74 : (aspect < 1.2 ? 68 : 62);
-    if (camera.updateProjectionMatrix) camera.updateProjectionMatrix();
-  }
-
-  function buildSky() {
-    skyUniforms = {
-      topColor: { value: skyTop },
-      bottomColor: { value: skyBottom },
-      offset: { value: 30 },
-      exponent: { value: 0.85 }
-    };
-    var mat = new THREE.ShaderMaterial({
-      uniforms: skyUniforms,
-      side: THREE.BackSide,
-      depthWrite: false,
-      vertexShader: [
-        'varying vec3 vWorld;',
-        'void main() {',
-        '  vWorld = position;',
-        '  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);',
-        '}'
-      ].join('\n'),
-      fragmentShader: [
-        'uniform vec3 topColor;',
-        'uniform vec3 bottomColor;',
-        'uniform float offset;',
-        'uniform float exponent;',
-        'varying vec3 vWorld;',
-        'void main() {',
-        '  float h = normalize(vWorld + vec3(0.0, offset, 0.0)).y;',
-        '  float t = pow(max(h, 0.0), exponent);',
-        '  gl_FragColor = vec4(mix(bottomColor, topColor, t), 1.0);',
-        '}'
-      ].join('\n')
-    });
-    sky = new THREE.Mesh(new THREE.SphereGeometry(760, 24, 16), mat);
-    sky.frustumCulled = false;
-    scene.add(sky);
-
-    var starGeo = new THREE.BufferGeometry();
-    var count = 420;
-    var pos = new Float32Array(count * 3);
-    for (var i = 0; i < count; i++) {
-      var theta = Math.random() * Math.PI * 2;
-      var phi = Math.random() * Math.PI * 0.46;
-      var r = 620;
-      pos[i * 3] = Math.cos(theta) * Math.cos(phi) * r;
-      pos[i * 3 + 1] = Math.sin(phi) * r + 20;
-      pos[i * 3 + 2] = Math.sin(theta) * Math.cos(phi) * r;
-    }
-    starGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-    starMat = new THREE.PointsMaterial({
-      color: 0xffffff, size: 2.4, sizeAttenuation: false,
-      transparent: true, opacity: 0, depthWrite: false, fog: false
-    });
-    stars = new THREE.Points(starGeo, starMat);
-    stars.frustumCulled = false;
-    scene.add(stars);
-
-    sunMat = new THREE.MeshBasicMaterial({ color: 0xfff2c4, fog: false });
-    sunMesh = new THREE.Mesh(new THREE.SphereGeometry(16, 18, 12), sunMat);
-    sunMesh.position.set(-120, 150, -580);
-    scene.add(sunMesh);
-
-    glowMat = new THREE.MeshBasicMaterial({
-      color: 0xffe6a8, transparent: true, opacity: 0.22,
-      blending: THREE.AdditiveBlending, depthWrite: false, fog: false
-    });
-    sunGlow = new THREE.Mesh(new THREE.SphereGeometry(46, 18, 12), glowMat);
-    sunGlow.position.copy(sunMesh.position);
-    scene.add(sunGlow);
-  }
-
-  function buildLights() {
-    ambLight = new THREE.AmbientLight(0xc3dcff, 1.0);
-    scene.add(ambLight);
-
-    hemiLight = new THREE.HemisphereLight(0xcfe6ff, 0x1a2038, 0.75);
-    scene.add(hemiLight);
-
-    dirLight = new THREE.DirectionalLight(0xfff4dc, 1.15);
-    dirLight.position.set(-12, 22, 10);
-    scene.add(dirLight);
-
-    rimLight = new THREE.DirectionalLight(0x6ea8ff, 0.55);
-    rimLight.position.set(10, 8, -16);
-    scene.add(rimLight);
-  }
-
-  /* ────────────────────────── 하늘길 ────────────────────────── */
-  function buildTrack() {
-    var deckMat = new THREE.MeshStandardMaterial({ color: 0x1b2440, metalness: 0.35, roughness: 0.72, emissive: 0x080d1c });
-    var lineMat = new THREE.MeshStandardMaterial({ color: 0x9fe8ff, emissive: 0x3fd0ff, emissiveIntensity: 0.8, roughness: 0.4, metalness: 0.2 });
-    var railMat = new THREE.MeshStandardMaterial({ color: 0x7c8fd0, emissive: 0x2a5cff, emissiveIntensity: 0.7, metalness: 0.6, roughness: 0.35 });
-    var postMat = new THREE.MeshStandardMaterial({ color: 0xff7ad4, emissive: 0xff3fc0, emissiveIntensity: 0.9, metalness: 0.3, roughness: 0.4 });
-    neonMats.push(lineMat, railMat, postMat);
-
-    var deckGeo = new THREE.BoxGeometry(7.8, 0.42, SEG_LEN);
-    var lineGeo = new THREE.BoxGeometry(0.07, 0.03, SEG_LEN);
-    var railGeo = new THREE.BoxGeometry(0.16, 0.16, SEG_LEN);
-    var stripeGeo = new THREE.BoxGeometry(7.7, 0.02, 0.16);
-    var postGeo = new THREE.BoxGeometry(0.16, 1.5, 0.16);
-
-    for (var i = 0; i < SEG_COUNT; i++) {
-      var seg = new THREE.Group();
-      seg.position.z = 12 - i * SEG_LEN;
-
-      var deck = new THREE.Mesh(deckGeo, deckMat);
-      deck.position.y = -0.22;
-      seg.add(deck);
-
-      var l1 = new THREE.Mesh(lineGeo, lineMat);
-      l1.position.set(-1.125, 0.012, 0);
-      seg.add(l1);
-      var l2 = new THREE.Mesh(lineGeo, lineMat);
-      l2.position.set(1.125, 0.012, 0);
-      seg.add(l2);
-
-      var rr = new THREE.Mesh(railGeo, railMat);
-      rr.position.set(3.82, 0.1, 0);
-      seg.add(rr);
-      var rl = new THREE.Mesh(railGeo, railMat);
-      rl.position.set(-3.82, 0.1, 0);
-      seg.add(rl);
-
-      for (var s = 0; s < 3; s++) {
-        var st = new THREE.Mesh(stripeGeo, railMat);
-        st.position.set(0, 0.012, -SEG_LEN / 2 + 4 + s * 8);
-        seg.add(st);
-      }
-
-      var pL = new THREE.Mesh(postGeo, postMat);
-      pL.position.set(-3.98, 0.72, -SEG_LEN / 2 + 1.5);
-      seg.add(pL);
-      var pR = new THREE.Mesh(postGeo, postMat);
-      pR.position.set(3.98, 0.72, -SEG_LEN / 2 + 1.5);
-      seg.add(pR);
-
-      scene.add(seg);
-      trackSegs.push(seg);
-    }
-  }
-
-  function buildScenery() {
-    cloudMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95, metalness: 0, transparent: true, opacity: 0.9 });
-    var cloudGeo = new THREE.SphereGeometry(1, 10, 8);
-
-    for (var i = 0; i < 26; i++) {
-      var cloud = new THREE.Group();
-      var puffs = randInt(3, 5);
-      for (var p = 0; p < puffs; p++) {
-        var m = new THREE.Mesh(cloudGeo, cloudMat);
-        var sc = rand(1.6, 3.4);
-        m.scale.set(sc, sc * rand(0.5, 0.75), sc);
-        m.position.set(rand(-3, 3), rand(-0.6, 0.6), rand(-2, 2));
-        cloud.add(m);
-      }
-      cloud.position.set((Math.random() < 0.5 ? -1 : 1) * rand(11, 34), rand(6, 22), rand(-560, 20));
-      cloud.userData.drift = rand(-0.1, 0.1);
-      cloud.userData.ph = Math.random() * 6.28;
-      scene.add(cloud);
-      cloudList.push(cloud);
-    }
-
-    var rockMat = new THREE.MeshStandardMaterial({ color: 0x2a2f4a, roughness: 0.95, metalness: 0.1 });
-    var grassMat = new THREE.MeshStandardMaterial({ color: 0x3f7a63, roughness: 0.9, emissive: 0x0d2a22 });
-
-    for (var k = 0; k < 10; k++) {
-      var island = new THREE.Group();
-      var rock = new THREE.Mesh(new THREE.ConeGeometry(rand(2.4, 4.4), rand(3.5, 7), 6), rockMat);
-      rock.rotation.x = Math.PI;
-      rock.position.y = -3.4;
-      island.add(rock);
-      var top = new THREE.Mesh(new THREE.CylinderGeometry(rand(2.2, 3.8), rand(2.2, 3.6), 0.6, 8), grassMat);
-      island.add(top);
-      island.position.set((Math.random() < 0.5 ? -1 : 1) * rand(10, 22), rand(-9, 4), rand(-480, 30));
-      scene.add(island);
-      propList.push(island);
-    }
-  }
-
-  /* ────────────────────────── 주인공 ────────────────────────── */
-  function buildPlayer() {
-    var g = new THREE.Group();
-    var rig = new THREE.Group();
-    g.add(rig);
-
-    var bodyMat = new THREE.MeshStandardMaterial({ color: 0x2c3763, metalness: 0.45, roughness: 0.38 });
-    var accentMat = new THREE.MeshStandardMaterial({ color: 0x6fe8ff, emissive: 0x2ec4ff, emissiveIntensity: 1.15, metalness: 0.3, roughness: 0.3 });
-    var skinMat = new THREE.MeshStandardMaterial({ color: 0xffd7bd, roughness: 0.65, metalness: 0.05 });
-    var darkMat = new THREE.MeshStandardMaterial({ color: 0x121a30, metalness: 0.4, roughness: 0.5 });
-    neonMats.push(accentMat);
-
-    var torso = new THREE.Mesh(new THREE.CylinderGeometry(0.33, 0.42, 0.8, 12), bodyMat);
-    torso.position.y = 0.96;
-    rig.add(torso);
-
-    var head = new THREE.Mesh(new THREE.SphereGeometry(0.3, 16, 12), skinMat);
-    head.position.y = 1.55;
-    rig.add(head);
-
-    var helmet = new THREE.Mesh(new THREE.SphereGeometry(0.32, 16, 10, 0, Math.PI * 2, 0, Math.PI * 0.58), accentMat);
-    helmet.position.y = 1.57;
-    rig.add(helmet);
-
-    var visor = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.1, 0.06), accentMat);
-    visor.position.set(0, 1.54, 0.28);
-    rig.add(visor);
-
-    var pack = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.44, 0.2), darkMat);
-    pack.position.set(0, 1.02, -0.3);
-    rig.add(pack);
-
-    var jet = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.34, 8), accentMat);
-    jet.position.set(0, 0.72, -0.3);
-    jet.rotation.x = Math.PI;
-    rig.add(jet);
-
-    var armGeo = new THREE.BoxGeometry(0.13, 0.46, 0.13);
-    var armL = new THREE.Mesh(armGeo, accentMat);
-    armL.position.set(-0.38, 1.0, 0);
-    rig.add(armL);
-    var armR = new THREE.Mesh(armGeo, accentMat);
-    armR.position.set(0.38, 1.0, 0);
-    rig.add(armR);
-
-    var legGeo = new THREE.BoxGeometry(0.16, 0.44, 0.16);
-    var legL = new THREE.Mesh(legGeo, bodyMat);
-    legL.position.set(-0.16, 0.34, 0);
-    rig.add(legL);
-    var legR = new THREE.Mesh(legGeo, bodyMat);
-    legR.position.set(0.16, 0.34, 0);
-    rig.add(legR);
-
-    var shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.26, depthWrite: false });
-    var shadow = new THREE.Mesh(new THREE.CircleGeometry(0.62, 20), shadowMat);
-    shadow.rotation.x = -Math.PI / 2;
-    shadow.position.y = 0.03;
-    g.add(shadow);
-
-    var auraMat = new THREE.MeshBasicMaterial({
-      color: 0x8fe6ff, transparent: true, opacity: 0,
-      blending: THREE.AdditiveBlending, depthWrite: false
-    });
-    var aura = new THREE.Mesh(new THREE.SphereGeometry(0.98, 18, 12), auraMat);
-    aura.position.y = 0.95;
-    g.add(aura);
-
-    var ringMat = new THREE.MeshBasicMaterial({
-      color: 0xffb066, transparent: true, opacity: 0,
-      blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide
-    });
-    var ring = new THREE.Mesh(new THREE.TorusGeometry(1.0, 0.035, 6, 28), ringMat);
-    ring.position.y = 0.95;
-    ring.rotation.x = Math.PI / 2;
-    g.add(ring);
-
-    scene.add(g);
-
-    player.group = g;
-    player.rig = rig;
-    player.shadow = shadow;
-    player.aura = aura;
-    player.magnetRing = ring;
-    player.body = torso;
-    player.head = head;
-    player.armL = armL;
-    player.armR = armR;
-    player.legL = legL;
-    player.legR = legR;
-  }
-
-  /* ────────────────────────── 장애물 재질과 모형 ────────────────────────── */
-  var matWallBody = null, matWallNeon = null, matBarBody = null, matBarNeon = null,
-      matArchPost = null, matArchBeam = null, coinMat = null,
-      matMagnet = null, matShield = null, matSpark = null, matWire = null;
-
-  function buildMaterials() {
-    matWallBody = new THREE.MeshStandardMaterial({ color: 0x272f4d, metalness: 0.4, roughness: 0.55, emissive: 0x0b1226 });
-    matWallNeon = new THREE.MeshStandardMaterial({ color: 0xff6b8a, emissive: 0xff3d63, emissiveIntensity: 1.1, roughness: 0.4, metalness: 0.2 });
-    matBarBody = new THREE.MeshStandardMaterial({ color: 0x3b2c18, metalness: 0.3, roughness: 0.7, emissive: 0x1a1206 });
-    matBarNeon = new THREE.MeshStandardMaterial({ color: 0xffbe55, emissive: 0xffa12e, emissiveIntensity: 1.2, roughness: 0.35, metalness: 0.25 });
-    matArchPost = new THREE.MeshStandardMaterial({ color: 0x1f3550, metalness: 0.5, roughness: 0.4, emissive: 0x0a2030 });
-    matArchBeam = new THREE.MeshStandardMaterial({ color: 0x57e6ff, emissive: 0x2fc7ff, emissiveIntensity: 1.1, metalness: 0.35, roughness: 0.3 });
-    coinMat = new THREE.MeshStandardMaterial({ color: 0xffd85a, emissive: 0xffb200, emissiveIntensity: 1.15, metalness: 0.7, roughness: 0.25 });
-    matMagnet = new THREE.MeshStandardMaterial({ color: 0xff6b4a, emissive: 0x9e2a12, emissiveIntensity: 0.9, metalness: 0.4, roughness: 0.35 });
-    matShield = new THREE.MeshStandardMaterial({ color: 0x7fc6ff, emissive: 0x2478ff, emissiveIntensity: 1.0, metalness: 0.5, roughness: 0.25, transparent: true, opacity: 0.92 });
-    matWire = new THREE.MeshBasicMaterial({ color: 0x9ad8ff, wireframe: true, transparent: true, opacity: 0.7 });
-    matSpark = new THREE.MeshBasicMaterial({ color: 0xffe98a, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false });
-    neonMats.push(matWallNeon, matBarNeon, matArchBeam);
-  }
-
-  function makeWall() {
-    var g = new THREE.Group();
-    var body = new THREE.Mesh(new THREE.BoxGeometry(1.95, 2.9, 0.5), matWallBody);
-    body.position.y = 1.45;
-    g.add(body);
-    var top = new THREE.Mesh(new THREE.BoxGeometry(2.05, 0.16, 0.58), matWallNeon);
-    top.position.y = 2.88;
-    g.add(top);
-    var bot = new THREE.Mesh(new THREE.BoxGeometry(2.05, 0.1, 0.58), matWallNeon);
-    bot.position.y = 0.06;
-    g.add(bot);
-    var s1 = new THREE.Mesh(new THREE.BoxGeometry(0.1, 2.5, 0.56), matWallNeon);
-    s1.position.set(-0.72, 1.45, 0);
-    g.add(s1);
-    var s2 = new THREE.Mesh(new THREE.BoxGeometry(0.1, 2.5, 0.56), matWallNeon);
-    s2.position.set(0.72, 1.45, 0);
-    g.add(s2);
-    return g;
-  }
-
-  function makeBarrier() {
-    var g = new THREE.Group();
-    var body = new THREE.Mesh(new THREE.BoxGeometry(1.95, 0.5, 0.44), matBarBody);
-    body.position.y = 0.3;
-    g.add(body);
-    for (var i = 0; i < 4; i++) {
-      var st = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.46, 0.48), matBarNeon);
-      st.position.set(-0.72 + i * 0.48, 0.31, 0);
-      g.add(st);
-    }
-    var legGeo = new THREE.BoxGeometry(0.12, 0.22, 0.3);
-    var l1 = new THREE.Mesh(legGeo, matBarBody);
-    l1.position.set(-0.8, 0.08, 0);
-    g.add(l1);
-    var l2 = new THREE.Mesh(legGeo, matBarBody);
-    l2.position.set(0.8, 0.08, 0);
-    g.add(l2);
-    return g;
-  }
-
-  function makeArch() {
-    var g = new THREE.Group();
-    var postGeo = new THREE.BoxGeometry(0.3, 3.6, 0.5);
-    var pL = new THREE.Mesh(postGeo, matArchPost);
-    pL.position.set(-3.5, 1.8, 0);
-    g.add(pL);
-    var pR = new THREE.Mesh(postGeo, matArchPost);
-    pR.position.set(3.5, 1.8, 0);
-    g.add(pR);
-    var beam = new THREE.Mesh(new THREE.BoxGeometry(7.4, 0.46, 0.54), matArchBeam);
-    beam.position.y = 2.02;
-    g.add(beam);
-    for (var i = 0; i < 3; i++) {
-      var lamp = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.12, 0.6), matArchBeam);
-      lamp.position.set(-1.9 + i * 1.9, 2.02, 0.04);
-      g.add(lamp);
-    }
-    return g;
-  }
-
-  function makeCoin() {
-    return new THREE.Mesh(new THREE.OctahedronGeometry(0.32, 0), coinMat);
-  }
-
-  function makeMagnet() {
-    var g = new THREE.Group();
-    var armGeo = new THREE.BoxGeometry(0.16, 0.52, 0.16);
-    var a1 = new THREE.Mesh(armGeo, matMagnet);
-    a1.position.set(-0.24, 0.06, 0);
-    g.add(a1);
-    var a2 = new THREE.Mesh(armGeo, matMagnet);
-    a2.position.set(0.24, 0.06, 0);
-    g.add(a2);
-    var bar = new THREE.Mesh(new THREE.BoxGeometry(0.66, 0.16, 0.16), matMagnet);
-    bar.position.set(0, -0.24, 0);
-    g.add(bar);
-    return g;
-  }
-
-  function makeShield() {
-    var g = new THREE.Group();
-    var core = new THREE.Mesh(new THREE.OctahedronGeometry(0.46, 0), matShield);
-    g.add(core);
-    var wire = new THREE.Mesh(new THREE.OctahedronGeometry(0.62, 0), matWire);
-    g.add(wire);
-    return g;
-  }
-
-  function buildWorld() {
-    initPalettes();
-    buildSky();
-    buildLights();
-    buildMaterials();
-    buildTrack();
-    buildScenery();
-    buildPlayer();
-
-    pools.wall.push(makeWall(), makeWall(), makeWall(), makeWall());
-    pools.barrier.push(makeBarrier(), makeBarrier(), makeBarrier(), makeBarrier());
-    pools.arch.push(makeArch(), makeArch());
-    for (var i = 0; i < 44; i++) pools.coin.push(makeCoin());
-    pools.magnet.push(makeMagnet(), makeMagnet());
-    pools.shield.push(makeShield(), makeShield());
-
-    for (var s = 0; s < 26; s++) {
-      var sp = new THREE.Mesh(new THREE.OctahedronGeometry(0.12, 0), matSpark);
-      sp.visible = false;
-      scene.add(sp);
-      sparks.push({ mesh: sp, active: false, vx: 0, vy: 0, vz: 0, life: 0, max: 1 });
-    }
-  }
-
-  /* ══════════════════════════ 엔티티 ══════════════════════════ */
-  function takeObj(poolName, factory) {
-    var list = pools[poolName];
-    var obj = list.length ? list.pop() : factory();
-    obj.visible = true;
-    scene.add(obj);
-    return obj;
-  }
-
-  function releaseObj(poolName, obj) {
-    obj.visible = false;
-    scene.remove(obj);
-    pools[poolName].push(obj);
-  }
-
-  function addObstacle(type, lane, z) {
-    var obj = takeObj(type, type === 'wall' ? makeWall : (type === 'barrier' ? makeBarrier : makeArch));
-    var lx = type === 'arch' ? 0 : CFG.lanes[lane];
-    obj.position.set(lx, 0, z);
-    obj.rotation.set(0, 0, 0);
-    var o = {
-      obj: obj, type: type, lane: lane, x: lx, z: z, prevZ: z,
-      halfW: type === 'arch' ? 3.9 : 0.98,
-      halfDepth: type === 'arch' ? 0.27 : (type === 'wall' ? 0.25 : 0.22),
-      topY: CFG.barrierTop,
-      clearY: CFG.archClear
-    };
-    obstacles.push(o);
-    return o;
-  }
-
-  function addCoin(x, y, z, laneIdx) {
-    var obj = takeObj('coin', makeCoin);
-    obj.position.set(x, y, z);
-    obj.rotation.set(0, 0, 0);
-    coins.push({
-      obj: obj, x: x, y: y, z: z, prevZ: z, baseY: y,
-      taken: false, ph: Math.random() * 6.28, lane: laneIdx
+  const STORE_KEY = 'playground.profile';   // 탭을 닫으면 사라지는 기억
+  const MAX_LEN = 4;
+
+  const lockScreen = document.getElementById('lock');
+  const hubScreen  = document.getElementById('hub');
+  const lockCard   = document.getElementById('lockCard');
+  const dotsBox    = document.getElementById('dots');
+  const dots       = Array.prototype.slice.call(dotsBox.querySelectorAll('.dot'));
+  const msg        = document.getElementById('msg');
+  const who        = document.getElementById('who');
+
+  let entered = '';
+  let errorTimer = null;
+
+  function drawDots() {
+    dots.forEach(function (dot, i) {
+      dot.classList.toggle('on', i < entered.length);
     });
   }
 
-  function addItem(kind, lane, z) {
-    var obj = takeObj(kind, kind === 'magnet' ? makeMagnet : makeShield);
-    var x = CFG.lanes[lane];
-    obj.position.set(x, 1.3, z);
-    items.push({
-      obj: obj, kind: kind, x: x, y: 1.3, z: z, prevZ: z,
-      taken: false, lane: lane, ph: Math.random() * 6.28
-    });
+  function resetDots() {
+    entered = '';
+    dotsBox.classList.remove('err');
+    drawDots();
   }
 
-  /* ────────────────────────── 배치 규칙 ────────────────────────── */
-  function coinBlocked(lane, z) {
-    for (var i = 0; i < obstacles.length; i++) {
-      var o = obstacles[i];
-      if (o.type === 'arch') continue;
-      if (o.lane !== lane) continue;
-      if (Math.abs(o.z - z) < 3.4) return true;
+  function showError(text) {
+    clearTimeout(errorTimer);
+    msg.textContent = text;
+    dotsBox.classList.add('err');
+    lockCard.classList.remove('err');
+    void lockCard.offsetWidth;            // 애니메이션 다시 재생
+    lockCard.classList.add('err');
+    errorTimer = setTimeout(function () {
+      resetDots();
+      msg.textContent = '';
+      lockCard.classList.remove('err');
+    }, 900);
+  }
+
+  function findProfile(pin) {
+    for (let i = 0; i < PROFILES.length; i++) {
+      if (String(PROFILES[i].pin) === pin) return PROFILES[i];
     }
-    return false;
+    return null;
   }
 
-  function spawnCoinLine(lane, zStart, count, arc) {
-    for (var i = 0; i < count; i++) {
-      var z = zStart - i * 2.15;
-      var y = 1.05;
-      if (arc) y = 1.0 + Math.sin((i / Math.max(1, count - 1)) * Math.PI) * 1.35;
-      if (coinBlocked(lane, z)) continue;
-      addCoin(CFG.lanes[lane], y, z, lane);
-    }
+  function enterSpace(profile) {
+    who.textContent = profile.name + '의 공간';
+    document.title = profile.name + '의 공간 · 우리 집 놀이터';
+    lockScreen.hidden = true;
+    hubScreen.hidden = false;
+    resetDots();
+    msg.textContent = '';
+    window.scrollTo(0, 0);
   }
 
-  function spawnCoinRun() {
-    var lane = randInt(0, 2);
-    var arc = Math.random() < 0.3;
-    spawnCoinLine(lane, CFG.spawnZ, arc ? 6 : randInt(4, 7), arc);
-  }
-
-  function spawnItem() {
-    var lane = randInt(0, 2);
-    var tries = 0;
-    while (coinBlocked(lane, CFG.spawnZ + 6) && tries < 6) { lane = randInt(0, 2); tries++; }
-    addItem(Math.random() < 0.5 ? 'magnet' : 'shield', lane, CFG.spawnZ + 6);
-  }
-
-  function spawnPattern() {
-    var z = CFG.spawnZ;
-    var free = randInt(0, 2);
-    var pattern = pickPattern(CFG.diff);
-
-    if (pattern === 'double') {
-      for (var l = 0; l < 3; l++) {
-        if (l === free) continue;
-        addObstacle(Math.random() < 0.62 ? 'wall' : 'barrier', l, z + rand(-1.5, 1.5));
-      }
-    } else if (pattern === 'jumpRow') {
-      var l1 = free;
-      var l2 = (free + 1) % 3;
-      addObstacle('barrier', l1, z);
-      addObstacle('barrier', l2, z + 1.6);
-    } else if (pattern === 'arch') {
-      if (Game.lastPattern === 'arch' || Game.lastPattern === 'jumpRow') {
-        pattern = 'single';
-        addObstacle(Math.random() < 0.5 ? 'wall' : 'barrier', randInt(0, 2), z);
-      } else {
-        addObstacle('arch', 1, z);
-        if (Math.random() < 0.6) spawnCoinLine(randInt(0, 2), z + 12, 4, false);
-      }
-    } else if (pattern === 'wallGuide') {
-      var wallLane = randInt(0, 2);
-      addObstacle('wall', wallLane, z);
-      var toward = wallLane === 0 ? 2 : 0;
-      spawnCoinLine(toward, z - 4, 5, false);
-    } else if (pattern === 'twoWaves') {
-      addObstacle('wall', free, z);
-      addObstacle('barrier', (free + 1) % 3, z + 27);
-      addObstacle('wall', (free + 2) % 3, z + 27);
+  function submit() {
+    const profile = findProfile(entered);
+    if (profile) {
+      try { sessionStorage.setItem(STORE_KEY, profile.key); } catch (e) {}
+      enterSpace(profile);
     } else {
-      pattern = 'single';
-      addObstacle(Math.random() < 0.55 ? 'wall' : 'barrier', randInt(0, 2), z);
-    }
-
-    if (pattern !== 'arch' && Math.random() < 0.45) {
-      spawnCoinLine(free, z - 7, 4, false);
-    }
-    Game.lastPattern = pattern;
-  }
-
-  function maybeSpawn(moved) {
-    var d = CFG.diff;
-    Game.distSinceSpawn += moved;
-    if (Game.distSinceSpawn >= Game.spawnGap) {
-      Game.distSinceSpawn = 0;
-      spawnPattern();
-      Game.spawnGap = Math.max(d.gapFloor, Game.speed * (d.gapMin + Math.random() * (d.gapMax - d.gapMin)));
-    }
-    if (Game.distance >= Game.nextItemAt) {
-      Game.nextItemAt = Game.distance + d.itemGapMin + Math.random() * d.itemGapRange;
-      spawnItem();
-    }
-    Game.coinGap -= moved;
-    if (Game.coinGap <= 0) {
-      Game.coinGap = 52 + Math.random() * 48;
-      spawnCoinRun();
+      showError('비밀번호가 맞지 않아요. 다시 눌러 주세요.');
     }
   }
 
-  /* ────────────────────────── 진행 ────────────────────────── */
-  function stepTrack(moved) {
-    var i;
-    for (i = 0; i < trackSegs.length; i++) {
-      var seg = trackSegs[i];
-      seg.position.z += moved;
-      if (seg.position.z - SEG_LEN / 2 > 40) seg.position.z -= SEG_LEN * SEG_COUNT;
-    }
-    for (i = 0; i < cloudList.length; i++) {
-      var c = cloudList[i];
-      c.position.z += moved * (0.45 + c.userData.drift + 0.55);
-      c.position.x += Math.sin(Game.elapsed * 0.3 + c.userData.ph) * 0.004;
-      if (c.position.z > 70) {
-        c.position.z -= 620;
-        c.position.x = (Math.random() < 0.5 ? -1 : 1) * rand(11, 34);
-        c.position.y = rand(6, 22);
-      }
-    }
-    for (i = 0; i < propList.length; i++) {
-      var p = propList[i];
-      p.position.z += moved;
-      p.rotation.y += 0.0015;
-      if (p.position.z > 70) {
-        p.position.z -= 520;
-        p.position.x = (Math.random() < 0.5 ? -1 : 1) * rand(10, 22);
-        p.position.y = rand(-9, 4);
-      }
+  function press(digit) {
+    if (dotsBox.classList.contains('err')) return;   // 오류 표시 중에는 잠깐 막기
+    if (entered.length >= MAX_LEN) return;
+    entered += digit;
+    msg.textContent = '';
+    drawDots();
+    if (entered.length === MAX_LEN) {
+      const filled = entered;
+      setTimeout(function () {
+        if (entered === filled) submit();
+      }, 140);
     }
   }
 
-  function stepPlayer(dt) {
-    var targetX = CFG.lanes[player.lane];
-    var follow = player.onGround ? 17 : 12;
-    player.x += (targetX - player.x) * Math.min(1, dt * follow);
-    if (Math.abs(targetX - player.x) < 0.008) player.x = targetX;
+  function removeOne() {
+    if (dotsBox.classList.contains('err')) return;
+    if (!entered.length) return;
+    entered = entered.slice(0, -1);
+    drawDots();
+  }
 
-    if (!player.onGround) {
-      player.vy -= CFG.gravity * dt;
-      player.y += player.vy * dt;
-      if (player.y <= 0) {
-        player.y = 0;
-        player.vy = 0;
-        player.onGround = true;
-        player.landT = 0.16;
-        Sound.land();
-        spawnSparkle(player.x, 0.12, 0.5, 3);
-      }
+  function lock() {
+    try { sessionStorage.removeItem(STORE_KEY); } catch (e) {}
+    hubScreen.hidden = true;
+    lockScreen.hidden = false;
+    document.title = '우리 집 놀이터';
+    resetDots();
+    msg.textContent = '';
+  }
+
+  document.getElementById('pad').addEventListener('click', function (event) {
+    const btn = event.target.closest('button[data-key]');
+    if (btn) press(btn.dataset.key);
+  });
+  document.getElementById('delBtn').addEventListener('click', removeOne);
+  document.getElementById('lockBtn').addEventListener('click', lock);
+
+  document.addEventListener('keydown', function (event) {
+    if (!lockScreen.hidden) {
+      if (/^[0-9]$/.test(event.key)) { press(event.key); }
+      else if (event.key === 'Backspace') { event.preventDefault(); removeOne(); }
+      else if (event.key === 'Enter' && entered.length === MAX_LEN) { submit(); }
+    } else if (event.key === 'Escape') {
+      lock();
     }
-
-    player.runT += dt * (5 + Game.speed * 0.26);
-    if (player.shield > 0) player.shield = Math.max(0, player.shield - dt);
-    if (player.magnet > 0) player.magnet = Math.max(0, player.magnet - dt);
-    updatePlayerVisual(dt);
-  }
-
-  function updatePlayerVisual(dt) {
-    var running = player.onGround && !player.dead;
-    var swing = Math.sin(player.runT);
-    player.legL.rotation.x = running ? swing * 0.75 : (player.onGround ? 0 : -0.55);
-    player.legR.rotation.x = running ? -swing * 0.75 : (player.onGround ? 0 : 0.4);
-    player.armL.rotation.x = running ? -swing * 0.7 : (player.onGround ? 0 : -1.5);
-    player.armR.rotation.x = running ? swing * 0.7 : (player.onGround ? 0 : -1.5);
-
-    var bob = running ? Math.abs(swing) * 0.06 : 0;
-    player.rig.position.y = bob;
-
-    var targetLean = clamp((CFG.lanes[player.lane] - player.x) * -0.45, -0.5, 0.5);
-    player.lean += (targetLean - player.lean) * Math.min(1, dt * 9);
-    player.rig.rotation.z = player.lean;
-    player.rig.rotation.x = player.onGround ? 0 : clamp(-player.vy * 0.028, -0.35, 0.35);
-
-    if (player.landT > 0) {
-      player.landT = Math.max(0, player.landT - dt);
-      var sq = clamp(player.landT / 0.16, 0, 1);
-      player.rig.scale.set(1 + sq * 0.13, 1 - sq * 0.15, 1 + sq * 0.13);
-    } else {
-      player.rig.scale.set(1, 1, 1);
-    }
-
-    if (player.dead) {
-      player.rig.rotation.z = player.lean + 0.9;
-      player.rig.position.y = -0.25;
-    }
-
-    player.group.position.set(player.x, player.y, 0);
-
-    player.shadow.position.y = 0.03 - player.y;
-    player.shadow.material.opacity = 0.26 * clamp(1 - player.y / 3.2, 0.12, 1);
-    var sh = clamp(1 - player.y / 7, 0.45, 1);
-    player.shadow.scale.set(sh, sh, sh);
-
-    var auraOn = player.shield > 0;
-    player.aura.visible = auraOn;
-    if (auraOn) {
-      var blink = player.shield < 1.6 ? (0.55 + 0.45 * Math.sin(player.shield * 22)) : 1;
-      player.aura.material.opacity = (0.2 + 0.1 * Math.sin(player.runT * 2)) * blink;
-      player.aura.scale.set(1, 1, 1 + 0.05 * Math.sin(player.runT * 3));
-    }
-
-    var magOn = player.magnet > 0;
-    player.magnetRing.visible = magOn;
-    if (magOn) {
-      player.magnetRing.material.opacity = (player.magnet < 1.6 ? (0.35 + 0.3 * Math.sin(player.magnet * 22)) : 0.55);
-      player.magnetRing.rotation.z += dt * 2.4;
-      player.magnetRing.position.y = 0.95 - player.y;
-      var pulse = 1 + 0.12 * Math.sin(player.runT * 3);
-      player.magnetRing.scale.set(pulse, pulse, 1);
-    }
-  }
-
-  function stepObstacles(moved) {
-    for (var i = obstacles.length - 1; i >= 0; i--) {
-      var o = obstacles[i];
-      o.prevZ = o.z;
-      o.z += moved;
-      o.obj.position.z = o.z;
-      if (o.z > CFG.spawnZ * 0 + 24) {
-        releaseObj(o.type, o.obj);
-        obstacles.splice(i, 1);
-      }
-    }
-  }
-
-  function stepCoins(moved, dt) {
-    for (var i = coins.length - 1; i >= 0; i--) {
-      var c = coins[i];
-      c.prevZ = c.z;
-      c.z += moved;
-      c.obj.position.z = c.z;
-
-      if (player.magnet > 0 && c.z > -18 && c.z < 2) {
-        var pullX = player.x - c.obj.position.x;
-        var pullY = (player.y + 0.85) - c.obj.position.y;
-        var t = Math.min(1, dt * 7);
-        c.obj.position.x += pullX * t;
-        c.obj.position.y += pullY * t;
-        c.x = c.obj.position.x;
-        c.y = c.obj.position.y;
-      } else {
-        c.obj.position.y = c.baseY + Math.sin(Game.elapsed * 2.2 + c.ph) * 0.12;
-        c.y = c.obj.position.y;
-      }
-      c.obj.rotation.y += dt * 2.4;
-      c.obj.rotation.x += dt * 0.9;
-
-      if (c.z > 26) {
-        releaseObj('coin', c.obj);
-        coins.splice(i, 1);
-      }
-    }
-  }
-
-  function stepItems(moved, dt) {
-    for (var i = items.length - 1; i >= 0; i--) {
-      var it = items[i];
-      it.prevZ = it.z;
-      it.z += moved;
-      it.obj.position.z = it.z;
-      it.obj.position.y = it.y + Math.sin(Game.elapsed * 2 + it.ph) * 0.16;
-      it.obj.rotation.y += dt * 1.8;
-      if (it.z > 26) {
-        releaseObj(it.kind, it.obj);
-        items.splice(i, 1);
-      }
-    }
-  }
-
-  function stepSparks(dt) {
-    for (var i = 0; i < sparks.length; i++) {
-      var s = sparks[i];
-      if (!s.active) continue;
-      s.life -= dt;
-      if (s.life <= 0) {
-        s.active = false;
-        s.mesh.visible = false;
-        continue;
-      }
-      s.mesh.position.x += s.vx * dt;
-      s.mesh.position.y += s.vy * dt;
-      s.mesh.position.z += s.vz * dt;
-      s.vy -= 9 * dt;
-      var k = s.life / s.max;
-      s.mesh.scale.set(k, k, k);
-      s.mesh.rotation.x += dt * 6;
-      s.mesh.rotation.y += dt * 5;
-    }
-  }
-
-  function spawnSparkle(x, y, z, count) {
-    var made = 0;
-    for (var i = 0; i < sparks.length && made < count; i++) {
-      var s = sparks[i];
-      if (s.active) continue;
-      s.active = true;
-      s.life = rand(0.35, 0.6);
-      s.max = s.life;
-      s.vx = rand(-3, 3);
-      s.vy = rand(1.5, 5);
-      s.vz = rand(-2.5, 2.5);
-      s.mesh.visible = true;
-      s.mesh.position.set(x, y, z);
-      s.mesh.scale.set(1, 1, 1);
-      made++;
-    }
-  }
-
-  /* ────────────────────────── 충돌 ────────────────────────── */
-  function sweptAtPlayer(prevZ, z, halfDepth) {
-    return (prevZ + halfDepth >= -PLAYER_HALF_Z) && (z - halfDepth <= PLAYER_HALF_Z);
-  }
-
-  function hitObstacle(o) {
-    if (!sweptAtPlayer(o.prevZ, o.z, o.halfDepth)) return false;
-    if (o.type === 'arch') {
-      return (player.y + CFG.playerHeight) > o.clearY;
-    }
-    if (Math.abs(o.x - player.x) >= (o.halfW + CFG.playerHalfX)) return false;
-    if (o.type === 'barrier') {
-      return player.y < (o.topY - 0.04);
-    }
-    return true;
-  }
-
-  function handleCollisions() {
-    for (var i = obstacles.length - 1; i >= 0; i--) {
-      var o = obstacles[i];
-      if (!hitObstacle(o)) continue;
-
-      if (player.shield > 0) {
-        player.shield = 0;
-        destroyObstacle(i);
-        Game.shake = Math.max(Game.shake, 0.35);
-        Sound.shieldHit();
-        spawnSparkle(o.x, 1.0, 0, 10);
-        toast('방패로 막았어요!');
-        continue;
-      }
-      crash();
-      return;
-    }
-
-    for (var c = coins.length - 1; c >= 0; c--) {
-      var coin = coins[c];
-      if (!sweptAtPlayer(coin.prevZ, coin.z, 0.55)) continue;
-      if (Math.abs(coin.obj.position.x - player.x) > 0.95) continue;
-      if (Math.abs(coin.obj.position.y - (player.y + 0.85)) > 1.15) continue;
-      collectCoin(c);
-    }
-
-    for (var k = items.length - 1; k >= 0; k--) {
-      var it = items[k];
-      if (!sweptAtPlayer(it.prevZ, it.z, 0.8)) continue;
-      if (Math.abs(it.obj.position.x - player.x) > 1.0) continue;
-      if (Math.abs(it.obj.position.y - (player.y + 0.85)) > 1.4) continue;
-      collectItem(k);
-    }
-  }
-
-  function collectCoin(index) {
-    var c = coins[index];
-    coins.splice(index, 1);
-    releaseObj('coin', c.obj);
-    Game.coinCount++;
-    Game.score = Math.floor(Game.distance * 1.2) + Game.coinCount * CFG.coinScore;
-    spawnSparkle(player.x, player.y + 0.9, -0.3, 4);
-    Sound.coin();
-    Game.hudT = 0;
-  }
-
-  function collectItem(index) {
-    var it = items[index];
-    items.splice(index, 1);
-    releaseObj(it.kind, it.obj);
-    if (it.kind === 'magnet') {
-      player.magnet = CFG.magnetTime;
-      toast('자석! 별이 따라와요');
-    } else {
-      player.shield = CFG.shieldTime;
-      toast('무적! 한 번은 버텨요');
-    }
-    Sound.booster();
-    spawnSparkle(it.x, 1.3, 0, 8);
-    Game.hudT = 0;
-  }
-
-  function destroyObstacle(index) {
-    var o = obstacles[index];
-    obstacles.splice(index, 1);
-    releaseObj(o.type, o.obj);
-  }
-
-  function crash() {
-    if (Game.mode !== 'playing') return;
-    player.dead = true;
-    Game.shake = 0.75;
-    Game.flashT = 0.28;
-    if (UI.flash) UI.flash.classList.add('on');
-    Sound.crash();
-    try {
-      if (navigator && navigator.vibrate) navigator.vibrate(60);
-    } catch (e) { /* 진동을 지원하지 않는 기기 */ }
-    Game.score = Math.floor(Game.distance * 1.2) + Game.coinCount * CFG.coinScore;
-    finalizeScore();
-    setMode('over');
-    Game.overT = 0.9;
-    Game.hudT = 0;
-  }
-
-  /* ────────────────────────── 하늘 변화 ────────────────────────── */
-  function updateSky() {
-    if (!PAL.length) return;
-    var total = Game.phaseDist / CFG.phaseLen;
-    var idx = Math.floor(total) % PAL.length;
-    if (idx < 0) idx += PAL.length;
-    var next = (idx + 1) % PAL.length;
-    var f = total - Math.floor(total);
-    var s = smoothstep((f - 0.72) / 0.28);
-    var A = PAL[idx], B = PAL[next];
-
-    skyTop.copy(A.top).lerp(B.top, s);
-    skyBottom.copy(A.bottom).lerp(B.bottom, s);
-    fogColor.copy(A.fog).lerp(B.fog, s);
-
-    scene.fog.color.copy(fogColor);
-    scene.fog.near = lerp(A.fogNear, B.fogNear, s);
-    scene.fog.far = lerp(A.fogFar, B.fogFar, s);
-
-    ambLight.color.copy(A.ambColor).lerp(B.ambColor, s);
-    ambLight.intensity = lerp(A.amb, B.amb, s);
-    hemiLight.intensity = 0.45 + lerp(A.amb, B.amb, s) * 0.4;
-    dirLight.color.copy(A.dir).lerp(B.dir, s);
-    dirLight.intensity = lerp(A.dirInt, B.dirInt, s);
-
-    var night = lerp(A.night, B.night, s);
-    rimLight.intensity = 0.3 + night * 0.75;
-
-    starMat.opacity = night * 0.95;
-    sunMat.color.copy(A.sun).lerp(B.sun, s);
-    glowMat.color.copy(A.sun).lerp(B.sun, s);
-    glowMat.opacity = 0.14 + (1 - night) * 0.14;
-    sunMesh.position.set(lerp(A.sunX, B.sunX, s), lerp(A.sunY, B.sunY, s), -580);
-    sunGlow.position.copy(sunMesh.position);
-
-    cloudMat.color.copy(A.cloud).lerp(B.cloud, s);
-    cloudMat.opacity = lerp(A.cloudOp, B.cloudOp, s);
-
-    for (var i = 0; i < neonMats.length; i++) {
-      neonMats[i].emissiveIntensity = 0.55 + night * 1.5;
-    }
-  }
-
-  /* ══════════════════════════ 화면과 진행 관리 ══════════════════════════ */
-  function setMode(m) {
-    Game.mode = m;
-  }
-
-  function clearEntities() {
-    var i;
-    for (i = obstacles.length - 1; i >= 0; i--) releaseObj(obstacles[i].type, obstacles[i].obj);
-    for (i = coins.length - 1; i >= 0; i--) releaseObj('coin', coins[i].obj);
-    for (i = items.length - 1; i >= 0; i--) releaseObj(items[i].kind, items[i].obj);
-    obstacles.length = 0;
-    coins.length = 0;
-    items.length = 0;
-    for (i = 0; i < sparks.length; i++) {
-      sparks[i].active = false;
-      sparks[i].mesh.visible = false;
-    }
-  }
-
-  function resetRun() {
-    clearEntities();
-    Game.score = 0;
-    Game.distance = 0;
-    Game.speed = 0;
-    Game.coinCount = 0;
-    Game.elapsed = 0;
-    Game.phaseDist = 0;
-    Game.distSinceSpawn = 0;
-    Game.spawnGap = CFG.diff.gapFirst;
-    Game.coinGap = 64;
-    Game.nextItemAt = CFG.diff.itemFirst;
-    Game.lastPattern = '';
-    Game.shake = 0;
-    Game.flashT = 0;
-    Game.overT = 0;
-    Game.hudT = 0;
-    Game.toastT = 0;
-    Game.isRecord = false;
-    player.lane = 1;
-    player.x = 0;
-    player.y = 0;
-    player.vy = 0;
-    player.onGround = true;
-    player.dead = false;
-    player.lean = 0;
-    player.landT = 0;
-    player.shield = 0;
-    player.magnet = 0;
-    if (UI.flash) UI.flash.classList.remove('on');
-    if (UI.toast) UI.toast.classList.remove('show');
-    hideCountdown();
-    updatePlayerVisual(0.016);
-    updateSky();
-    updateHUD();
-    updateBoostUI();
-  }
-
-  function updateHUD() {
-    if (UI.score) UI.score.textContent = fmt(Game.score);
-    if (UI.coins) UI.coins.textContent = fmt(Game.coinCount);
-    if (UI.best) UI.best.textContent = fmt(Game.best);
-  }
-
-  function updateBestTexts() {
-    if (UI.titleBest) UI.titleBest.textContent = fmt(Game.best);
-    if (UI.best) UI.best.textContent = fmt(Game.best);
-  }
-
-  function updateBoostUI() {
-    if (!UI.boostMagnet || !UI.boostShield) return;
-    var m = player.magnet > 0;
-    var s = player.shield > 0;
-    UI.boostMagnet.classList.toggle('on', m);
-    UI.boostShield.classList.toggle('on', s);
-    if (m) UI.boostMagnet.style.setProperty('--p', Math.round((player.magnet / CFG.magnetTime) * 100) + '%');
-    if (s) UI.boostShield.style.setProperty('--p', Math.round((player.shield / CFG.shieldTime) * 100) + '%');
-  }
-
-  function toast(text) {
-    if (!UI.toast) return;
-    UI.toast.textContent = text;
-    UI.toast.classList.add('show');
-    Game.toastT = 1.5;
-  }
-
-  function showCountdown(text) {
-    if (!UI.countdown) return;
-    UI.countdown.textContent = text;
-    UI.countdown.classList.remove('pop');
-    void UI.countdown.offsetWidth;
-    UI.countdown.classList.add('pop');
-  }
-
-  function hideCountdown() {
-    if (!UI.countdown) return;
-    UI.countdown.classList.remove('pop');
-    UI.countdown.textContent = '';
-  }
-
-  function updateSoundButton() {
-    if (!UI.btnSound) return;
-    var on = Sound.enabled();
-    UI.btnSound.textContent = on ? '\uD83D\uDD0A 소리' : '\uD83D\uDD07 꺼짐';
-    UI.btnSound.setAttribute('aria-pressed', on ? 'true' : 'false');
-  }
-
-  function updateTouchLabel() {
-    if (!UI.btnTouch) return;
-    var label = Game.touchMode === 'on' ? '켜짐' : (Game.touchMode === 'off' ? '꺼짐' : '자동');
-    UI.btnTouch.textContent = '터치 버튼: ' + label;
-  }
-
-  /* ── 난이도 ── */
-  function difficultyLabel() {
-    var d = DIFFS[Game.difficulty];
-    return d ? d.label : DIFFS.easy.label;
-  }
-
-  function updateDifficultyUI() {
-    var map = { easy: UI.btnDiffEasy, normal: UI.btnDiffNormal, hard: UI.btnDiffHard };
-    for (var i = 0; i < DIFF_ORDER.length; i++) {
-      var key = DIFF_ORDER[i], btn = map[key];
-      var on = (key === Game.difficulty);
-      if (btn) {
-        btn.classList.toggle('on', on);
-        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-      }
-    }
-    if (UI.chipDiff) UI.chipDiff.textContent = difficultyLabel();
-    if (UI.overDiff) UI.overDiff.textContent = '난이도 ' + difficultyLabel();
-  }
-
-  /* 난이도를 적용한다. persist가 참이면 다음 실행에도 기억한다. */
-  function setDifficulty(id, persist) {
-    var key = DIFFS[id] ? id : 'easy';
-    var d = DIFFS[key];
-    Game.difficulty = key;
-    CFG.diff = d;
-    CFG.startSpeed = d.startSpeed;
-    CFG.maxSpeed = d.maxSpeed;
-    CFG.speedGain = d.speedGain;
-    if (persist) storeSet(KEY_DIFF, key);
-    updateDifficultyUI();
-    return key;
-  }
-
-  function pickPattern(d) {
-    var list = d.patterns, total = 0, i;
-    for (i = 0; i < list.length; i++) total += list[i][1];
-    var r = Math.random() * total, acc = 0;
-    for (i = 0; i < list.length; i++) {
-      acc += list[i][1];
-      if (r < acc) return list[i][0];
-    }
-    return list[0][0];
-  }
-
-  function isTouchDevice() {
-    try {
-      return ('ontouchstart' in window) || (navigator && navigator.maxTouchPoints > 0);
-    } catch (e) { return false; }
-  }
-
-  function updateTouchVisibility() {
-    if (!UI.touch) return;
-    var wanted = Game.touchMode === 'on' || (Game.touchMode === 'auto' && isTouchDevice());
-    var active = (Game.mode === 'playing' || Game.mode === 'countdown');
-    if (wanted && active) UI.touch.classList.add('show');
-    else UI.touch.classList.remove('show');
-  }
-
-  /* ────────────────────────── 시작·정지·재시작 ────────────────────────── */
-  function startGame() {
-    if (!Game.inited) return;
-    Sound.unlock();
-    resetRun();
-    Game.countdownT = 0;
-    Game.countdownStep = -1;
-    setMode('countdown');
-    hideAllScreens();
-    if (UI.hud) UI.hud.classList.add('show');
-    if (UI.boosts) UI.boosts.classList.add('show');
-    updateTouchVisibility();
-    Sound.start();
-  }
-
-  function goMenu() {
-    if (!Game.inited) return;
-    resetRun();
-    setMode('menu');
-    if (UI.hud) UI.hud.classList.remove('show');
-    if (UI.boosts) UI.boosts.classList.remove('show');
-    if (UI.touch) UI.touch.classList.remove('show');
-    showScreen('screen-title');
-    updateBestTexts();
-  }
-
-  function pauseGame() {
-    if (Game.mode !== 'playing') return;
-    setMode('paused');
-    showScreen('screen-pause');
-  }
-
-  function resumeGame() {
-    if (Game.mode !== 'paused') return;
-    setMode('playing');
-    hideAllScreens();
-    Game.lastTs = 0;
-  }
-
-  function togglePause() {
-    if (Game.mode === 'playing') pauseGame();
-    else if (Game.mode === 'paused') resumeGame();
-  }
-
-  function finalizeScore() {
-    if (Game.score > Game.best) {
-      Game.best = Game.score;
-      storeSet(KEY_BEST, Game.best);
-      Game.isRecord = true;
-    } else {
-      Game.isRecord = false;
-    }
-    updateBestTexts();
-  }
-
-  function showGameOver() {
-    if (UI.overScore) UI.overScore.textContent = fmt(Game.score);
-    if (UI.overCoins) UI.overCoins.textContent = fmt(Game.coinCount);
-    if (UI.overBest) UI.overBest.textContent = fmt(Game.best);
-    if (UI.overDiff) UI.overDiff.textContent = '난이도 ' + difficultyLabel();
-    if (UI.newRecord) {
-      if (Game.isRecord) UI.newRecord.classList.add('show');
-      else UI.newRecord.classList.remove('show');
-    }
-    if (UI.hud) UI.hud.classList.remove('show');
-    if (UI.boosts) UI.boosts.classList.remove('show');
-    if (UI.touch) UI.touch.classList.remove('show');
-    showScreen('screen-over');
-    updateBestTexts();
-  }
-
-  /* ────────────────────────── 한 프레임씩 ══════════════════════════ */
-  function stepGame(dt) {
-    Game.elapsed += dt;
-    Game.speed = Math.min(CFG.maxSpeed, CFG.startSpeed + Game.distance * CFG.speedGain);
-    var moved = Game.speed * dt;
-    Game.distance += moved;
-    Game.phaseDist += moved;
-
-    stepTrack(moved);
-    stepPlayer(dt);
-    stepObstacles(moved);
-    stepCoins(moved, dt);
-    stepItems(moved, dt);
-    stepSparks(dt);
-    handleCollisions();
-    if (Game.mode !== 'playing') return;
-
-    maybeSpawn(moved);
-    updateSky();
-
-    Game.score = Math.floor(Game.distance * 1.2) + Game.coinCount * CFG.coinScore;
-    Game.hudT -= dt;
-    if (Game.hudT <= 0) {
-      Game.hudT = 0.08;
-      updateHUD();
-      updateBoostUI();
-    }
-  }
-
-  function stepCountdown(dt) {
-    Game.countdownT += dt;
-    Game.speed = 9;
-    var moved = Game.speed * dt;
-    stepTrack(moved);
-    player.runT += dt * 7;
-    updatePlayerVisual(dt);
-    stepSparks(dt);
-    updateSky();
-
-    var stage = Math.floor(Game.countdownT / 0.62);
-    if (stage !== Game.countdownStep) {
-      Game.countdownStep = stage;
-      var labels = ['3', '2', '1', '출발!'];
-      showCountdown(labels[Math.min(stage, labels.length - 1)]);
-    }
-    if (Game.countdownT >= 2.48) {
-      setMode('playing');
-      hideCountdown();
-      Game.hudT = 0;
-    }
-  }
-
-  function stepIdle(dt) {
-    Game.elapsed += dt;
-    var idleSpeed = (Game.mode === 'over') ? 3.2 : 9;
-    var moved = idleSpeed * dt;
-    stepTrack(moved);
-    stepSparks(dt);
-    if (Game.mode === 'over') {
-      stepObstacles(moved);
-      stepCoins(moved, dt);
-      stepItems(moved, dt);
-      player.rig.rotation.z += (0.85 - player.rig.rotation.z) * Math.min(1, dt * 4);
-      player.rig.rotation.x += (-0.3 - player.rig.rotation.x) * Math.min(1, dt * 3);
-      player.rig.position.y += (-0.22 - player.rig.position.y) * Math.min(1, dt * 3);
-      player.legL.rotation.x += (-0.45 - player.legL.rotation.x) * Math.min(1, dt * 6);
-      player.legR.rotation.x += (0.35 - player.legR.rotation.x) * Math.min(1, dt * 6);
-      player.y = Math.max(0, player.y - dt * 0.9);
-      player.group.position.set(player.x, player.y, 0);
-      player.shadow.position.y = 0.03 - player.y;
-    } else {
-      player.runT += dt * 6.5;
-      player.dead = false;
-      updatePlayerVisual(dt);
-    }
-    updateSky();
-  }
-
-  function update(dt) {
-    if (Game.mode === 'playing') stepGame(dt);
-    else if (Game.mode === 'countdown') stepCountdown(dt);
-    else if (Game.mode === 'menu' || Game.mode === 'over') stepIdle(dt);
-
-    if (Game.shake > 0) Game.shake = Math.max(0, Game.shake - dt * 2.2);
-    if (Game.flashT > 0) {
-      Game.flashT -= dt;
-      if (Game.flashT <= 0 && UI.flash) UI.flash.classList.remove('on');
-    }
-    if (Game.toastT > 0) {
-      Game.toastT -= dt;
-      if (Game.toastT <= 0 && UI.toast) UI.toast.classList.remove('show');
-    }
-    if (Game.mode === 'over' && Game.overT > 0) {
-      Game.overT -= dt;
-      if (Game.overT <= 0) showGameOver();
-    }
-    Sound.tick(Game.mode === 'playing');
-  }
-
-  function draw(dt) {
-    if (!renderer || !scene || !camera) return;
-    var camX = player.x * 0.36;
-    camera.position.x += (camX - camera.position.x) * Math.min(1, dt * 5);
-    camera.position.y = 4.4 + player.y * 0.16;
-    camera.position.z = 8.4;
-    camera.lookAt(player.x * 0.22, 1.35 + player.y * 0.1, -9);
-    if (Game.shake > 0.001) {
-      camera.position.x += (Math.random() - 0.5) * Game.shake * 0.9;
-      camera.position.y += (Math.random() - 0.5) * Game.shake * 0.6;
-      camera.rotation.z += (Math.random() - 0.5) * Game.shake * 0.08;
-    }
-    renderer.render(scene, camera);
-  }
-
-  function loop(ts) {
-    Game.rafId = requestAnimationFrame(loop);
-    var now = (ts === undefined || ts === null)
-      ? (window.performance && window.performance.now ? window.performance.now() : Date.now())
-      : ts;
-    var dt = (now - Game.lastTs) / 1000;
-    Game.lastTs = now;
-    if (!isFinite(dt) || dt <= 0) dt = 1 / 60;
-    if (dt > 0.05) dt = 0.05;
-    update(dt);
-    draw(dt);
-  }
-
-  /* ══════════════════════════ 입력 ══════════════════════════ */
-  function moveLeft() {
-    if (Game.mode !== 'playing') return;
-    if (player.lane > 0) player.lane -= 1;
-  }
-
-  function moveRight() {
-    if (Game.mode !== 'playing') return;
-    if (player.lane < 2) player.lane += 1;
-  }
-
-  function jump() {
-    if (Game.mode !== 'playing') return;
-    if (!player.onGround) return;
-    player.onGround = false;
-    player.vy = CFG.jumpVel;
-    player.y = 0.001;
-    player.landT = 0;
-    Sound.jump();
-    spawnSparkle(player.x, 0.15, -0.25, 3);
-  }
-
-  function onKeyDown(e) {
-    Sound.unlock();
-    var k = e.key;
-    var code = e.code;
-    if (k === 'ArrowLeft' || k === 'a' || k === 'A') {
-      if (e.preventDefault) e.preventDefault();
-      moveLeft();
-    } else if (k === 'ArrowRight' || k === 'd' || k === 'D') {
-      if (e.preventDefault) e.preventDefault();
-      moveRight();
-    } else if (k === 'ArrowUp' || k === 'w' || k === 'W' || k === ' ' || k === 'Spacebar' || code === 'Space') {
-      if (e.preventDefault) e.preventDefault();
-      if (!e.repeat) jump();
-    } else if (k === 'p' || k === 'P' || k === 'Escape') {
-      if (e.preventDefault) e.preventDefault();
-      togglePause();
-    } else if (k === 'Enter') {
-      if (Game.mode === 'menu' || Game.mode === 'over') startGame();
-      else if (Game.mode === 'paused') resumeGame();
-    }
-  }
-
-  var ptr = { active: false, id: null, x0: 0, y0: 0, x1: 0, y1: 0 };
-
-  function onPointerDown(e) {
-    Sound.unlock();
-    if (Game.mode !== 'playing' && Game.mode !== 'countdown') return;
-    ptr.active = true;
-    ptr.id = e.pointerId;
-    ptr.x0 = e.clientX;
-    ptr.y0 = e.clientY;
-    ptr.x1 = e.clientX;
-    ptr.y1 = e.clientY;
-    if (e.preventDefault) e.preventDefault();
-  }
-
-  function onPointerMove(e) {
-    if (!ptr.active) return;
-    if (ptr.id !== undefined && e.pointerId !== undefined && ptr.id !== e.pointerId) return;
-    ptr.x1 = e.clientX;
-    ptr.y1 = e.clientY;
-    if (e.preventDefault) e.preventDefault();
-  }
-
-  function onPointerUp(e) {
-    if (!ptr.active) return;
-    ptr.active = false;
-    if (e && e.clientX !== undefined) ptr.x1 = e.clientX;
-    if (e && e.clientY !== undefined) ptr.y1 = e.clientY;
-    var dx = ptr.x1 - ptr.x0;
-    var dy = ptr.y1 - ptr.y0;
-    var ax = Math.abs(dx);
-    var ay = Math.abs(dy);
-    if (ax > 26 || ay > 26) {
-      if (ax > ay) {
-        if (dx > 0) moveRight(); else moveLeft();
-      } else if (dy < 0) {
-        jump();
-      }
-    } else {
-      jump();
-    }
-  }
-
-  function onPointerCancel() { ptr.active = false; }
-
-  /* 포인터 이벤트를 지원하지 않는 브라우저(구형 사파리)용 터치 처리 */
-  function bindTouchFallback() {
-    if (!UI.canvas || window.PointerEvent) return;
-
-    function onStart(e) {
-      var t = e.touches && e.touches[0];
-      if (!t) return;
-      Sound.unlock();
-      if (Game.mode !== 'playing' && Game.mode !== 'countdown') return;
-      ptr.active = true;
-      ptr.x0 = t.clientX;
-      ptr.y0 = t.clientY;
-      ptr.x1 = t.clientX;
-      ptr.y1 = t.clientY;
-      if (e.preventDefault) e.preventDefault();
-    }
-    function onMove(e) {
-      if (!ptr.active) return;
-      var t = e.touches && e.touches[0];
-      if (!t) return;
-      ptr.x1 = t.clientX;
-      ptr.y1 = t.clientY;
-      if (e.preventDefault) e.preventDefault();
-    }
-    function onEnd(e) {
-      if (!ptr.active) return;
-      ptr.active = false;
-      var t = (e.changedTouches && e.changedTouches[0]) || null;
-      if (t) { ptr.x1 = t.clientX; ptr.y1 = t.clientY; }
-      var dx = ptr.x1 - ptr.x0;
-      var dy = ptr.y1 - ptr.y0;
-      var ax = Math.abs(dx);
-      var ay = Math.abs(dy);
-      if (ax > 26 || ay > 26) {
-        if (ax > ay) { if (dx > 0) moveRight(); else moveLeft(); }
-        else if (dy < 0) jump();
-      } else {
-        jump();
-      }
-    }
-    UI.canvas.addEventListener('touchstart', onStart, false);
-    UI.canvas.addEventListener('touchmove', onMove, false);
-    UI.canvas.addEventListener('touchend', onEnd, false);
-    UI.canvas.addEventListener('touchcancel', function () { ptr.active = false; }, false);
-  }
-
-  function toggleSound() {
-    Sound.setEnabled(!Sound.enabled());
-    Game.soundOn = Sound.enabled();
-    updateSoundButton();
-    if (Game.soundOn) Sound.unlock();
-  }
-
-  function toggleHowto() {
-    if (!UI.howto) return;
-    UI.howto.classList.toggle('show');
-  }
-
-  function cycleTouchMode() {
-    Game.touchMode = (Game.touchMode === 'auto') ? 'on' : (Game.touchMode === 'on' ? 'off' : 'auto');
-    storeSet(KEY_TOUCH, Game.touchMode);
-    updateTouchLabel();
-    updateTouchVisibility();
-  }
-
-  function onResize() {
-    if (!renderer) return;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    renderer.setSize(window.innerWidth, window.innerHeight, false);
-    adjustCamera();
-  }
-
-  function onVisibility() {
-    if (document.hidden && Game.mode === 'playing') pauseGame();
-  }
-
-  function retryLoad() {
-    Game.loadFailed = false;
-    if (window.THREE) {
-      boot();
-      return;
-    }
-    try {
-      if (window.location && window.location.reload) { window.location.reload(); return; }
-    } catch (e) { /* 무시 */ }
-    loadThree();
-  }
-
-  function bindEvents() {
-    window.addEventListener('keydown', onKeyDown, false);
-    window.addEventListener('resize', onResize, false);
-    document.addEventListener('visibilitychange', onVisibility, false);
-
-    if (UI.canvas) {
-      UI.canvas.addEventListener('pointerdown', onPointerDown, false);
-      UI.canvas.addEventListener('pointermove', onPointerMove, false);
-      UI.canvas.addEventListener('pointerup', onPointerUp, false);
-      UI.canvas.addEventListener('pointercancel', onPointerCancel, false);
-      UI.canvas.addEventListener('contextmenu', function (e) { if (e.preventDefault) e.preventDefault(); }, false);
-    }
-
-    if (UI.btnStart) UI.btnStart.addEventListener('click', startGame, false);
-    if (UI.btnSound) UI.btnSound.addEventListener('click', toggleSound, false);
-    if (UI.btnPause) UI.btnPause.addEventListener('click', togglePause, false);
-    if (UI.btnResume) UI.btnResume.addEventListener('click', resumeGame, false);
-    if (UI.btnRestart) UI.btnRestart.addEventListener('click', startGame, false);
-    if (UI.btnHomePause) UI.btnHomePause.addEventListener('click', goMenu, false);
-    if (UI.btnAgain) UI.btnAgain.addEventListener('click', startGame, false);
-    if (UI.btnHomeOver) UI.btnHomeOver.addEventListener('click', goMenu, false);
-    if (UI.btnHowto) UI.btnHowto.addEventListener('click', toggleHowto, false);
-    if (UI.btnTouch) UI.btnTouch.addEventListener('click', cycleTouchMode, false);
-    if (UI.btnDiffEasy) UI.btnDiffEasy.addEventListener('click', function () { setDifficulty('easy', true); }, false);
-    if (UI.btnDiffNormal) UI.btnDiffNormal.addEventListener('click', function () { setDifficulty('normal', true); }, false);
-    if (UI.btnDiffHard) UI.btnDiffHard.addEventListener('click', function () { setDifficulty('hard', true); }, false);
-    if (UI.btnRetry) UI.btnRetry.addEventListener('click', retryLoad, false);
-
-    bindTouchFallback();
-
-    var touchBtns = [
-      { el: $('touch-left'), act: 'left' },
-      { el: $('touch-jump'), act: 'jump' },
-      { el: $('touch-right'), act: 'right' }
-    ];
-    for (var i = 0; i < touchBtns.length; i++) {
-      (function (item) {
-        if (!item.el) return;
-        item.el.addEventListener('pointerdown', function (e) {
-          if (e.preventDefault) e.preventDefault();
-          if (e.stopPropagation) e.stopPropagation();
-          Sound.unlock();
-          if (item.act === 'left') moveLeft();
-          else if (item.act === 'right') moveRight();
-          else jump();
-        }, false);
-      })(touchBtns[i]);
-    }
-  }
-
-  /* ══════════════════════════ 부팅 ══════════════════════════ */
-  function showLoadError(msg) {
-    Game.loadFailed = true;
-    if (UI.errMsg) UI.errMsg.textContent = msg || '인터넷 연결을 확인한 뒤 다시 시도해 주세요.';
-    showScreen('screen-error');
-  }
-
-  function boot() {
-    if (Game.inited) return;
-    Game.inited = true;
-    try {
-      initRenderer();
-      buildWorld();
-      setDifficulty(storeGet(KEY_DIFF, 'easy'), false);
-      resetRun();
-      updateSoundButton();
-      updateTouchLabel();
-      updateBestTexts();
-      Game.touchMode = storeGet(KEY_TOUCH, 'auto');
-      if (Game.touchMode !== 'on' && Game.touchMode !== 'off' && Game.touchMode !== 'auto') Game.touchMode = 'auto';
-      updateTouchLabel();
-      setMode('menu');
-      showScreen('screen-title');
-      updateTouchVisibility();
-      Game.lastTs = 0;
-      Game.rafId = requestAnimationFrame(loop);
-    } catch (err) {
-      Game.inited = false;
-      showLoadError('3D 화면을 시작하지 못했어요. 페이지를 새로 고친 뒤 다시 시도해 주세요.');
-      if (window.console && window.console.error) window.console.error(err);
-    }
-  }
-
-  var THREE_SOURCES = [
-    'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',
-    'https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js',
-    'https://unpkg.com/three@0.128.0/build/three.min.js'
-  ];
-
-  function loadThree() {
-    if (window.THREE) { boot(); return; }
-    var idx = 0;
-    function nextSource() {
-      if (idx >= THREE_SOURCES.length) {
-        showLoadError('게임 엔진을 불러오지 못했어요. 인터넷 연결을 확인한 뒤 다시 시도해 주세요.');
-        return;
-      }
-      var src = THREE_SOURCES[idx++];
-      var script = document.createElement('script');
-      script.src = src;
-      script.async = false;
-      script.onload = function () {
-        if (window.THREE) boot();
-        else nextSource();
-      };
-      script.onerror = function () { nextSource(); };
-      document.head.appendChild(script);
-    }
-    nextSource();
-
-    window.setTimeout(function () {
-      if (!Game.inited && !Game.loadFailed) {
-        showLoadError('게임 엔진을 불러오는 데 시간이 걸리고 있어요. 인터넷 연결을 확인한 뒤 다시 시도해 주세요.');
-      }
-    }, 15000);
-  }
-
-  /* ── 테스트·점검용 공개 핸들 (게임 동작에는 영향 없음) ── */
-  window.SkyDash = {
-    get mode() { return Game.mode; },
-    state: function () {
-      return {
-        mode: Game.mode,
-        difficulty: Game.difficulty,
-        score: Game.score,
-        distance: Game.distance,
-        speed: Game.speed,
-        coins: Game.coinCount,
-        best: Game.best,
-        isRecord: !!Game.isRecord,
-        inited: Game.inited,
-        obstacleCount: obstacles.length,
-        coinCount: coins.length,
-        itemCount: items.length,
-        player: {
-          x: player.x, y: player.y, vy: player.vy, lane: player.lane,
-          onGround: player.onGround, shield: player.shield,
-          magnet: player.magnet, dead: player.dead
-        },
-        hud: {
-          score: UI.score ? UI.score.textContent : '',
-          coins: UI.coins ? UI.coins.textContent : '',
-          best: UI.best ? UI.best.textContent : '',
-          shown: UI.hud ? UI.hud.classList.contains('show') : false
-        },
-        titleBest: UI.titleBest ? UI.titleBest.textContent : '',
-        overScore: UI.overScore ? UI.overScore.textContent : '',
-        screen: (function () {
-          for (var i = 0; i < SCREEN_IDS.length; i++) {
-            var node = $(SCREEN_IDS[i]);
-            if (node && node.classList.contains('show')) return SCREEN_IDS[i];
-          }
-          return '';
-        })(),
-        countdownText: UI.countdown ? UI.countdown.textContent : '',
-        toastText: UI.toast ? UI.toast.textContent : '',
-        toastShown: UI.toast ? UI.toast.classList.contains('show') : false
-      };
-    },
-    start: startGame,
-    menu: goMenu,
-    pause: pauseGame,
-    resume: resumeGame,
-    togglePause: togglePause,
-    left: moveLeft,
-    right: moveRight,
-    jump: jump,
-    sound: { toggle: toggleSound, enabled: function () { return Sound.enabled(); } },
-    difficulty: function () { return Game.difficulty; },
-    setDifficulty: function (id) { return setDifficulty(id, true); },
-    difficulties: function () {
-      var out = [];
-      for (var i = 0; i < DIFF_ORDER.length; i++) {
-        out.push({ id: DIFF_ORDER[i], label: DIFFS[DIFF_ORDER[i]].label });
-      }
-      return out;
-    },
-    config: function () {
-      var d = CFG.diff;
-      var pats = [];
-      for (var i = 0; i < d.patterns.length; i++) {
-        pats.push({ name: d.patterns[i][0], weight: d.patterns[i][1] });
-      }
-      return {
-        difficulty: Game.difficulty,
-        label: d.label,
-        startSpeed: CFG.startSpeed,
-        maxSpeed: CFG.maxSpeed,
-        speedGain: CFG.speedGain,
-        gapMin: d.gapMin,
-        gapMax: d.gapMax,
-        gapFloor: d.gapFloor,
-        gapFirst: d.gapFirst,
-        itemFirst: d.itemFirst,
-        itemGapMin: d.itemGapMin,
-        itemGapRange: d.itemGapRange,
-        patterns: pats
-      };
-    },
-    debug: {
-      game: Game,
-      player: player,
-      obstacles: obstacles,
-      coinList: coins,
-      itemList: items,
-      spawnObstacle: addObstacle,
-      spawnCoin: addCoin,
-      spawnItem: addItem,
-      clearEntities: clearEntities,
-      setShield: function (v) { player.shield = v; updateBoostUI(); },
-      setMagnet: function (v) { player.magnet = v; updateBoostUI(); },
-      step: function (dt) { update(dt); draw(dt); },
-      updateSky: updateSky,
-      showGameOver: showGameOver,
-      spawnPattern: spawnPattern,
-      sky: function () {
-        return {
-          stars: starMat.opacity,
-          fogFar: scene.fog.far,
-          fogColor: scene.fog.color.getHex(),
-          sunY: sunMesh.position.y,
-          skyTop: skyTop.getHex(),
-          skyBottom: skyBottom.getHex()
-        };
-      },
-      sceneChildren: function () { return scene.children.length; },
-      sceneRef: function () { return scene; },
-      cameraRef: function () { return camera; },
-      rendererRef: function () { return renderer; },
-      skyInfo: function () { return { skyTop: skyTop.getHex(), stars: starMat.opacity }; },
-      touchButtons: function () {
-        return [UI.btnStart, UI.btnSound, UI.btnPause, UI.btnResume, UI.btnAgain, UI.btnHomeOver];
-      }
-    }
-  };
-
-  bindEvents();
-  loadThree();
+  });
+
+  // 같은 탭에서 새로 고치거나 돌아와도 다시 묻지 않음
+  let saved = null;
+  try { saved = sessionStorage.getItem(STORE_KEY); } catch (e) {}
+  const savedProfile = saved ? PROFILES.find(function (p) { return p.key === saved; }) : null;
+  if (savedProfile) enterSpace(savedProfile);
 })();
-
 </script>
 </body>
 </html>
