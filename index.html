@@ -3,48 +3,69 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#e9f3ff">
+<meta name="theme-color" content="#eef3ff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="놀이터">
-<meta name="description" content="우리 집 웹앱 놀이터 — 스카이 대시 3D, 3D 테트리스, 로봇 오목, 3D 산사">
-<title>우리 집 놀이터</title>
+<meta name="apple-mobile-web-app-title" content="우리 집 허브">
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="우리 집 올인원 허브 — Zoe의 루틴·별 보상·놀이터, 그리고 아빠의 스레드 보드">
+<title>우리 집 올인원 허브</title>
 <style>
   :root{
     --ink:#1f2c44;
-    --ink-soft:#5d6d88;
+    --ink-soft:#61708c;
+    --line:#e5ebf7;
     --blue:#3f8cff;
-    --line:#e6ecf8;
+    --accent:#3f8cff;
+    --accent-soft:#e8f1ff;
+    --accent-deep:#2b6fd6;
+    --star:#f5a623;
+    --ok:#25a96b;
+    --ok-soft:#e6f8ef;
+    --card-shadow:0 8px 22px rgba(41,74,132,.10);
+    --radius:22px;
+  }
+  body.theme-kid{
+    --accent:#f2739b;
+    --accent-soft:#ffe9f0;
+    --accent-deep:#d94b7b;
+    --card-shadow:0 8px 22px rgba(160,70,110,.13);
   }
   *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-  html{ height:100%; }
+  html{ height:100%; scroll-behavior:smooth; }
   body{
     margin:0; min-height:100%;
     font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Malgun Gothic","맑은 고딕",system-ui,sans-serif;
     color:var(--ink);
-    background:linear-gradient(165deg,#e9f3ff 0%,#f4f1ff 48%,#fff5ea 100%);
+    background:linear-gradient(170deg,#eef3ff 0%,#f6f1ff 45%,#fff6ee 100%);
     background-attachment:fixed;
     -webkit-font-smoothing:antialiased;
     overflow-x:hidden;
+    word-break:keep-all;
   }
+  body.theme-kid{ background:linear-gradient(170deg,#fff0f5 0%,#f3f0ff 46%,#eef7ff 100%); background-attachment:fixed; }
   [hidden]{ display:none !important; }
+  button{ font-family:inherit; }
 
-  /* 배경 장식 */
   .bg{ position:fixed; inset:0; overflow:hidden; pointer-events:none; z-index:0; }
-  .bg i{ position:absolute; display:block; border-radius:50%; filter:blur(58px); opacity:.55; }
-  .bg .b1{ width:340px; height:340px; left:-90px; top:-70px; background:#bcd9ff; }
-  .bg .b2{ width:300px; height:300px; right:-80px; top:22%; background:#e2d4ff; }
-  .bg .b3{ width:320px; height:320px; left:20%; bottom:-120px; background:#ffe2c8; }
+  .bg i{ position:absolute; display:block; border-radius:50%; filter:blur(60px); opacity:.55; }
+  .bg .b1{ width:340px; height:340px; left:-90px; top:-80px; background:#bcd9ff; }
+  .bg .b2{ width:300px; height:300px; right:-90px; top:20%; background:#e2d4ff; }
+  .bg .b3{ width:330px; height:330px; left:16%; bottom:-130px; background:#ffe2c8; }
+  body.theme-kid .bg .b1{ background:#ffc9dc; }
+  body.theme-kid .bg .b2{ background:#d9cbff; }
+  body.theme-kid .bg .b3{ background:#c9e8ff; }
 
   .screen{
     position:relative; z-index:1;
     min-height:100vh; min-height:100dvh;
     display:flex; flex-direction:column; align-items:center;
-    padding:calc(20px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));
+    padding:calc(20px + env(safe-area-inset-top)) 16px calc(28px + env(safe-area-inset-bottom));
   }
+  #pick, #pin{ justify-content:center; }
+  .wrap{ width:100%; max-width:1040px; }
 
   /* ── 프로필 선택 ── */
-  #pick{ justify-content:center; }
   .pick-shell{ width:100%; max-width:470px; }
   .pick-title{ margin:0; text-align:center; font-size:27px; font-weight:800; letter-spacing:-.8px; }
   .pick-sub{ margin:8px 0 24px; text-align:center; font-size:14px; color:var(--ink-soft); }
@@ -52,16 +73,14 @@
   .profile{
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:11px;
     min-height:158px; padding:24px 12px;
-    background:#fff; color:var(--ink); font-family:inherit;
+    background:#fff; color:var(--ink);
     border:1px solid rgba(255,255,255,.95); border-radius:27px;
     box-shadow:0 10px 26px rgba(41,74,132,.11);
     cursor:pointer; touch-action:manipulation;
     transition:transform .16s ease, box-shadow .16s ease;
   }
   .profile:active{ transform:scale(.97); }
-  @media (hover:hover){
-    .profile:hover{ transform:translateY(-3px); box-shadow:0 16px 32px rgba(41,74,132,.17); }
-  }
+  @media (hover:hover){ .profile:hover{ transform:translateY(-3px); box-shadow:0 16px 32px rgba(41,74,132,.17); } }
   .avatar{
     width:78px; height:78px; border-radius:50%;
     display:grid; place-items:center; font-size:40px;
@@ -69,21 +88,20 @@
   }
   .profile:nth-child(2) .avatar{ background:linear-gradient(150deg,#e6f8ef,#eaf1ff); }
   .pname{ font-size:19px; font-weight:800; letter-spacing:-.35px; }
+  .ptag{ font-size:12px; color:var(--ink-soft); margin-top:-6px; }
 
   /* ── 비밀번호 ── */
-  #pin{ justify-content:center; }
   .pin-shell{ width:100%; max-width:370px; }
   .back{
     display:inline-flex; align-items:center;
     margin:0 0 10px 2px; padding:8px 12px;
-    border:none; border-radius:12px; background:rgba(255,255,255,.7);
-    color:var(--ink-soft); font-family:inherit; font-size:13.5px; font-weight:700;
+    border:none; border-radius:12px; background:rgba(255,255,255,.72);
+    color:var(--ink-soft); font-size:13.5px; font-weight:700;
     cursor:pointer; touch-action:manipulation;
   }
   .back:active{ transform:scale(.97); }
-
   .lock-card{
-    background:rgba(255,255,255,.9);
+    background:rgba(255,255,255,.92);
     -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px);
     border:1px solid rgba(255,255,255,.95);
     border-radius:30px;
@@ -102,7 +120,6 @@
   .lock-emoji{ font-size:34px; line-height:1; }
   .lock-title{ margin:8px 0 0; font-size:22px; font-weight:800; letter-spacing:-.6px; }
   .lock-sub{ margin:6px 0 0; font-size:13.5px; color:var(--ink-soft); line-height:1.45; }
-
   .dots{ display:flex; justify-content:center; gap:15px; margin:20px 0 2px; }
   .dot{
     width:15px; height:15px; border-radius:50%;
@@ -112,101 +129,274 @@
   .dot.on{ background:var(--blue); border-color:var(--blue); transform:scale(1.1); }
   .dots.err .dot{ border-color:#ff8aa4; }
   .msg{ min-height:19px; margin:8px 0 10px; font-size:13px; font-weight:700; color:#e0557a; }
-
   .pad{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
   .key{
     height:62px; width:100%;
     border:1px solid var(--line); border-radius:18px;
     background:#fff; color:var(--ink);
-    font-family:inherit; font-size:25px; font-weight:700;
+    font-size:25px; font-weight:700;
     box-shadow:0 2px 6px rgba(41,74,132,.07);
     cursor:pointer; touch-action:manipulation;
     transition:transform .1s ease, background .12s ease;
   }
   .key:active{ background:#eef5ff; transform:scale(.96); }
-  .key:focus-visible, .profile:focus-visible, .lock-btn:focus-visible, .back:focus-visible, .card:focus-visible{
-    outline:2px solid #9fc4ff; outline-offset:2px;
-  }
   .key.gap{ background:transparent; border-color:transparent; box-shadow:none; cursor:default; pointer-events:none; }
   .key.del{ font-size:21px; color:#7b8ba6; }
+  :focus-visible{ outline:2px solid #9fc4ff; outline-offset:2px; }
 
-  /* ── 홈 허브 ── */
-  #hub{ justify-content:center; }
-  .hub-shell{ width:100%; max-width:760px; }
-  .hub-head{
+  /* ── 공간 공통 ── */
+  .top{
     display:flex; align-items:center; justify-content:space-between; gap:10px;
-    margin:4px 2px 16px;
+    margin:2px 0 18px;
   }
-  .hub-id{ display:flex; align-items:center; gap:11px; min-width:0; }
+  .who-wrap{ display:flex; align-items:center; gap:11px; min-width:0; }
   .avatar-sm{
-    flex:0 0 auto; width:46px; height:46px; border-radius:50%;
-    display:grid; place-items:center; font-size:24px;
+    flex:0 0 auto; width:48px; height:48px; border-radius:50%;
+    display:grid; place-items:center; font-size:25px;
     background:#fff; box-shadow:0 4px 12px rgba(41,74,132,.12);
   }
   .hello{ margin:0 0 2px; font-size:12.5px; color:var(--ink-soft); letter-spacing:.2px; }
-  .who{ margin:0; font-size:23px; font-weight:800; letter-spacing:-.7px; }
-  .lock-btn{
+  .who{ margin:0; font-size:22px; font-weight:800; letter-spacing:-.7px; }
+  .ghost-btn{
     flex:0 0 auto;
     display:inline-flex; align-items:center; gap:5px;
     padding:10px 13px;
     border:1px solid var(--line); border-radius:14px;
-    background:rgba(255,255,255,.92); color:#4a5c78;
-    font-family:inherit; font-size:13px; font-weight:700;
+    background:rgba(255,255,255,.94); color:#4a5c78;
+    font-size:13px; font-weight:700;
     cursor:pointer; touch-action:manipulation;
     box-shadow:0 2px 8px rgba(41,74,132,.07);
   }
-  .lock-btn:active{ transform:scale(.97); }
+  .ghost-btn:active{ transform:scale(.97); }
 
-  .cards{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:13px; }
+  .section{ margin:0 0 22px; }
+  .sec-head{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin:0 4px 10px; }
+  .sec-title{ margin:0; font-size:17px; font-weight:800; letter-spacing:-.4px; }
+  .sec-note{ margin:0; font-size:12.5px; color:var(--ink-soft); }
+
+  /* ── Zoe: 별 현황 ── */
+  .star-board{
+    display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+    padding:18px 20px;
+    background:linear-gradient(135deg,#fff 0%,#fff7fb 100%);
+    border:1px solid rgba(255,255,255,.95);
+    border-radius:26px; box-shadow:var(--card-shadow);
+  }
+  body.theme-dad .star-board{ background:linear-gradient(135deg,#fff 0%,#f4f9ff 100%); }
+  .star-total{ display:flex; align-items:baseline; gap:7px; flex:0 0 auto; }
+  .star-total .n{ font-size:38px; font-weight:900; letter-spacing:-1.4px; color:#e08a00; line-height:1; }
+  .star-total .u{ font-size:16px; font-weight:800; color:#c98a1c; }
+  .star-side{ flex:1 1 220px; min-width:180px; }
+  .star-line{ display:flex; justify-content:space-between; font-size:13px; font-weight:700; color:#57667f; margin:0 0 7px; }
+  .bar{ height:11px; border-radius:99px; background:#eceff7; overflow:hidden; }
+  .bar > i{ display:block; height:100%; width:0; border-radius:99px; background:linear-gradient(90deg,#ffc766,#ff9f43); transition:width .35s ease; }
+
+  /* ── 루틴 카드 ── */
+  .routines{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:11px; }
+  .routine{
+    position:relative; overflow:hidden;
+    display:flex; flex-direction:column; align-items:flex-start; gap:8px;
+    min-height:112px; padding:15px 15px 14px;
+    background:#fff; color:var(--ink); text-align:left;
+    border:2px solid #ffe3ec; border-radius:20px;
+    box-shadow:0 5px 16px rgba(160,70,110,.09);
+    cursor:pointer; touch-action:manipulation;
+    transition:transform .13s ease, border-color .18s ease, background .18s ease;
+  }
+  .routine:active{ transform:scale(.97); }
+  .routine .r-emoji{ font-size:27px; line-height:1; }
+  .routine .r-label{ font-size:14.5px; font-weight:800; line-height:1.32; letter-spacing:-.25px; }
+  .routine .r-sub{ font-size:11.5px; color:var(--ink-soft); font-weight:600; }
+  .routine .r-check{
+    position:absolute; top:12px; right:12px;
+    width:26px; height:26px; border-radius:50%;
+    display:grid; place-items:center;
+    font-size:15px; font-weight:900; color:#fff;
+    background:#f1f4fa; border:2px solid #e2e8f4;
+    transition:background .18s ease, border-color .18s ease, transform .18s ease;
+  }
+  .routine.done{
+    background:linear-gradient(150deg,#fff8fc,#ffeef5);
+    border-color:#ffb3cd;
+  }
+  .routine.done .r-check{ background:var(--ok); border-color:var(--ok); transform:scale(1.04); }
+  .routine.done .r-label{ color:#8b5570; }
+  .routine .r-star{
+    position:absolute; right:14px; bottom:12px;
+    font-size:12.5px; font-weight:900; color:#e08a00;
+    opacity:0; transform:translateY(4px);
+    transition:opacity .2s ease, transform .2s ease;
+  }
+  .routine.done .r-star{ opacity:1; transform:translateY(0); }
+  .routine.pop{ animation:pop .34s ease; }
+  @keyframes pop{ 0%{ transform:scale(1); } 45%{ transform:scale(1.045); } 100%{ transform:scale(1); } }
+
+  /* ── 보상 상자 ── */
+  .rewards{ display:grid; grid-template-columns:repeat(auto-fit,minmax(152px,1fr)); gap:11px; }
+  .reward{
+    display:flex; flex-direction:column; gap:6px;
+    padding:15px; background:#fff;
+    border:1px solid var(--line); border-radius:20px;
+    box-shadow:0 5px 16px rgba(41,74,132,.08);
+  }
+  .reward .rw-emoji{ font-size:26px; line-height:1; }
+  .reward .rw-name{ font-size:14.5px; font-weight:800; letter-spacing:-.25px; }
+  .reward .rw-cost{ font-size:12.5px; font-weight:800; color:#d48806; }
+  .reward .rw-btn{
+    margin-top:6px; padding:10px 8px;
+    border:none; border-radius:13px;
+    background:var(--accent); color:#fff;
+    font-size:13px; font-weight:800;
+    cursor:pointer; touch-action:manipulation;
+    transition:transform .12s ease, opacity .15s ease, background .15s ease;
+  }
+  .reward .rw-btn:active{ transform:scale(.97); }
+  .reward .rw-btn[disabled]{ background:#e8ecf5; color:#9aa7bd; cursor:not-allowed; }
+  .reward .rw-count{ font-size:11.5px; color:var(--ink-soft); font-weight:600; min-height:15px; }
+
+  /* ── 앱 카드 ── */
+  .cards{ display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:12px; }
   .card{
-    display:flex; align-items:center; gap:14px;
-    min-height:92px; padding:16px;
+    display:flex; align-items:center; gap:13px;
+    min-height:88px; padding:15px;
     background:#fff; color:inherit; text-decoration:none;
-    border:1px solid rgba(255,255,255,.95); border-radius:22px;
-    box-shadow:0 8px 22px rgba(41,74,132,.10);
+    border:1px solid rgba(255,255,255,.95); border-radius:21px;
+    box-shadow:var(--card-shadow);
     transition:transform .16s ease, box-shadow .16s ease;
     touch-action:manipulation;
   }
   .card:active{ transform:scale(.98); }
-  @media (hover:hover){
-    .card:hover{ transform:translateY(-3px); box-shadow:0 14px 30px rgba(41,74,132,.16); }
-  }
+  @media (hover:hover){ .card:hover{ transform:translateY(-3px); box-shadow:0 14px 30px rgba(41,74,132,.16); } }
   .icon{
-    flex:0 0 auto; width:56px; height:56px; border-radius:18px;
-    display:grid; place-items:center; font-size:29px;
+    flex:0 0 auto; width:54px; height:54px; border-radius:17px;
+    display:grid; place-items:center; font-size:28px;
     background:#f1f5fd;
   }
-  .card.sky    .icon{ background:linear-gradient(145deg,#e1efff,#c4e0ff); }
+  .card.sky .icon{ background:linear-gradient(145deg,#e1efff,#c4e0ff); }
   .card.tetris .icon{ background:linear-gradient(145deg,#ece7ff,#d8cfff); }
-  .card.omok   .icon{ background:linear-gradient(145deg,#ddf8ee,#c4efdf); }
+  .card.omok .icon{ background:linear-gradient(145deg,#ddf8ee,#c4efdf); }
   .card.temple .icon{ background:linear-gradient(145deg,#e7ecff,#d3dcff); }
   .card .text{ min-width:0; }
-  .name{ display:block; font-size:18.5px; font-weight:800; letter-spacing:-.35px; }
-  .desc{ display:block; margin-top:3px; font-size:13px; color:var(--ink-soft); line-height:1.35; }
+  .name{ display:block; font-size:17px; font-weight:800; letter-spacing:-.35px; }
+  .desc{ display:block; margin-top:3px; font-size:12.5px; color:var(--ink-soft); line-height:1.35; }
 
-  .tip{
-    margin:20px 4px 0; text-align:center;
-    font-size:13px; color:var(--ink-soft); line-height:1.5;
+  /* ── 스레드 보드 ── */
+  .board{
+    background:rgba(255,255,255,.72);
+    -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
+    border:1px solid rgba(255,255,255,.9);
+    border-radius:26px; padding:16px;
+    box-shadow:var(--card-shadow);
   }
-  .tip b{ color:#3d6fb5; font-weight:700; }
+  .search-wrap{ position:relative; margin:0 0 12px; }
+  .search{
+    width:100%; height:46px; padding:0 42px 0 40px;
+    border:1px solid var(--line); border-radius:15px;
+    background:#fff; color:var(--ink);
+    font-size:14.5px; font-family:inherit;
+    box-shadow:0 2px 8px rgba(41,74,132,.06);
+  }
+  .search::placeholder{ color:#a3aec2; }
+  .search-ico{ position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:15px; opacity:.6; }
+  .search-clear{
+    position:absolute; right:7px; top:50%; transform:translateY(-50%);
+    width:32px; height:32px; border:none; border-radius:50%;
+    background:#eff3fa; color:#7b8ba6; font-size:14px; font-weight:800;
+    cursor:pointer;
+  }
+  .tabs{
+    display:flex; gap:7px; overflow-x:auto; padding:2px 2px 10px;
+    scrollbar-width:none; -webkit-overflow-scrolling:touch;
+  }
+  .tabs::-webkit-scrollbar{ display:none; }
+  .tab{
+    flex:0 0 auto;
+    display:inline-flex; align-items:center; gap:5px;
+    padding:9px 13px;
+    border:1px solid var(--line); border-radius:99px;
+    background:#fff; color:#4f5f79;
+    font-size:13px; font-weight:800; white-space:nowrap;
+    cursor:pointer; touch-action:manipulation;
+    transition:background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .tab .cnt{ font-size:11.5px; font-weight:800; color:#9aa7bd; }
+  .tab[aria-pressed="true"]{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .tab[aria-pressed="true"] .cnt{ color:rgba(255,255,255,.82); }
+  .result-line{ margin:0 3px 11px; font-size:12.5px; color:var(--ink-soft); font-weight:700; }
+  .threads{ display:grid; grid-template-columns:repeat(auto-fit,minmax(272px,1fr)); gap:11px; }
+  .thread{
+    display:flex; flex-direction:column;
+    background:#fff; border:1px solid var(--line); border-radius:19px;
+    overflow:hidden;
+    transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+  }
+  .thread:hover{ transform:translateY(-2px); box-shadow:0 12px 26px rgba(41,74,132,.13); border-color:#d8e3f6; }
+  .t-link{
+    display:flex; flex-direction:column; gap:8px; flex:1;
+    padding:14px 15px 12px; color:inherit; text-decoration:none;
+  }
+  .t-top{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .t-handle{ font-size:12.5px; font-weight:800; color:#3d6fb5; letter-spacing:-.1px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .t-date{ flex:0 0 auto; font-size:11.5px; font-weight:700; color:#93a0b6; }
+  .t-sum{ margin:0; font-size:14px; font-weight:700; line-height:1.46; letter-spacing:-.2px; color:#25334b; }
+  .t-foot{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:auto; padding-top:2px; }
+  .t-chip{ font-size:11px; font-weight:800; color:#6d7d97; background:#f1f5fc; border-radius:99px; padding:4px 9px; }
+  .t-go{ font-size:11.5px; font-weight:800; color:var(--accent-deep); white-space:nowrap; }
+  .t-extra{ display:flex; flex-wrap:wrap; gap:6px; padding:0 15px 13px; }
+  .t-extra a{
+    font-size:11.5px; font-weight:800; color:#5b6b86; text-decoration:none;
+    background:#f4f7fd; border:1px solid #e6edf9; border-radius:99px; padding:5px 10px;
+  }
+  .empty{
+    padding:34px 16px; text-align:center; color:var(--ink-soft);
+    font-size:14px; font-weight:700;
+  }
+  .empty span{ display:block; font-size:30px; margin-bottom:8px; }
+
+  .foot{ margin:22px 4px 0; text-align:center; font-size:12.5px; color:var(--ink-soft); line-height:1.5; }
+
+  /* ── 토스트 ── */
+  .toast{
+    position:fixed; left:50%; bottom:calc(26px + env(safe-area-inset-bottom));
+    transform:translate(-50%,16px);
+    max-width:min(88vw,420px);
+    padding:13px 20px;
+    background:#25334b; color:#fff;
+    font-size:14px; font-weight:800; line-height:1.35; text-align:center;
+    border-radius:16px; box-shadow:0 12px 30px rgba(21,32,52,.28);
+    opacity:0; pointer-events:none; z-index:50;
+    transition:opacity .2s ease, transform .2s ease;
+  }
+  .toast.show{ opacity:1; transform:translate(-50%,0); }
+
   .noscript{ margin:12px 0 0; text-align:center; font-size:13px; color:#c0456a; font-weight:700; }
 
-  @media (max-width:520px){
-    .cards{ grid-template-columns:1fr; }
-    .card{ min-height:88px; }
+  @media (max-width:640px){
+    .screen{ padding-left:13px; padding-right:13px; }
+    .who{ font-size:20px; }
+    .star-board{ padding:16px; gap:12px; }
+    .star-total .n{ font-size:33px; }
+    .threads{ grid-template-columns:1fr; }
+    .board{ padding:13px; border-radius:22px; }
+    .routine{ min-height:104px; padding:14px; }
   }
   @media (max-width:380px){
     .key{ height:56px; font-size:23px; border-radius:16px; }
     .lock-card{ padding:20px 15px 18px; }
     .pick-title{ font-size:25px; }
-    .pname{ font-size:18px; }
-    .avatar{ width:70px; height:70px; font-size:36px; }
-    .who{ font-size:21px; }
-    .card{ min-height:84px; padding:14px; gap:12px; }
-    .icon{ width:50px; height:50px; font-size:26px; border-radius:16px; }
+    .routines{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .routine .r-label{ font-size:13.5px; }
+    .card{ min-height:82px; padding:13px; gap:11px; }
+    .icon{ width:48px; height:48px; font-size:25px; border-radius:15px; }
+  }
+  @media (min-width:768px){
+    .screen{ padding-left:26px; padding-right:26px; }
+    .routines{ grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .pick-title{ font-size:29px; }
   }
   @media (prefers-reduced-motion:reduce){
     *{ animation:none !important; transition:none !important; }
+    html{ scroll-behavior:auto; }
   }
 </style>
 </head>
@@ -257,36 +447,35 @@
 </main>
 
 <!-- ══════════ 3. 내 공간 ══════════ -->
-<main id="hub" class="screen" hidden>
-  <div class="hub-shell">
-    <header class="hub-head">
-      <div class="hub-id">
-        <span class="avatar-sm" id="hubEmoji" aria-hidden="true">🙂</span>
+<main id="space" class="screen" hidden>
+  <div class="wrap">
+    <header class="top">
+      <div class="who-wrap">
+        <span class="avatar-sm" id="spaceEmoji" aria-hidden="true">🙂</span>
         <div>
-          <p class="hello">안녕하세요</p>
-          <h1 class="who" id="who">내 공간</h1>
+          <p class="hello" id="spaceHello">안녕하세요</p>
+          <h1 class="who" id="spaceName">내 공간</h1>
         </div>
       </div>
-      <button class="lock-btn" type="button" id="lockBtn">🔒 잠그기</button>
+      <button class="ghost-btn" type="button" id="lockBtn">🔒 잠그기</button>
     </header>
 
-    <section class="cards" id="cards" aria-label="놀이 목록"></section>
+    <div id="spaceBody"></div>
 
-    <p class="tip">💡 태블릿이나 폰에서 <b>홈 화면에 추가</b>를 하면 앱처럼 바로 켤 수 있어요.</p>
+    <p class="foot">💡 태블릿이나 폰에서 <b>홈 화면에 추가</b>를 하면 앱처럼 바로 켤 수 있어요.</p>
   </div>
 </main>
 
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
 <script>
 /* ─────────────────────────────────────────────
-   설정 — 여기만 고치면 됩니다.
-
-   · 프로필마다 4자리 숫자 비밀번호 하나와, 그 공간에서 보일 놀이 목록(apps)을 정합니다.
-   · 비밀번호는 평문이 아니라 해시(SHA-256)로만 적혀 있습니다. 번호를 바꾸려면
-     아래 pinHash 자리에 새 번호의 해시를 넣어 주세요.
+   설정 — 프로필과 4자리 비밀번호, 놀이 목록
+   · 비밀번호는 평문이 아니라 해시(SHA-256)로만 적혀 있습니다.
+     번호를 바꾸려면 아래 pinHash 자리에 새 번호의 해시를 넣어 주세요.
        해시 만드는 법: 브라우저 개발자 도구 콘솔에서
        await digest(SALT + '새번호')  →  나온 값을 그대로 붙여 넣기
-   · 이 잠금은 장난으로 눌리는 것을 막는 가벼운 잠금입니다. 페이지 소스에 번호가
-     그대로 보이지는 않지만, 마음먹고 뜯어보는 사람까지 막아 주지는 못합니다.
+   · 이 잠금은 장난으로 눌리는 것을 막는 가벼운 잠금입니다.
      중요한 자료 보관용으로는 쓰지 마세요.
    · 이름·번호 외에 다른 개인정보(생일, 전화번호, 주소 등)는 절대 넣지 마세요.
      이 페이지는 누구나 볼 수 있는 공개 주소에 올라갑니다.
@@ -303,17 +492,106 @@ const APPS = {
 
 const PROFILES = [
   {
-    key: 'kid', name: 'Zoe', emoji: '👧',
+    key: 'kid', name: 'Zoe', emoji: '👧', space: 'kid',
+    tag: '루틴 · 별 · 놀이터',
     pinHash: '8cad98d932b2fdf0c0aeac65e8f514b7dbd4b4f34c89ac2c3c14e56049567300',
     apps: ['skydash', 'tetris', 'omok']
   },
   {
-    key: 'dad', name: '라이언', emoji: '👨',
+    key: 'dad', name: '라이언', emoji: '👨', space: 'dad',
+    tag: '스레드 보드 · 놀이터',
     pinHash: '88e93823341e891b4b6cdd3aaee644eefb355cc94e8010a75ff53448cb51a53b',
     apps: ['skydash', 'tetris', 'omok', 'temple']
   }
 ];
 
+/* 루틴 — 아이가 쓰기 좋은 기본 6가지 */
+const ROUTINES = [
+  { id:'wake',   emoji:'🌅', label:'기상 · 이불 정리', sub:'일어나서 이불 접기' },
+  { id:'wash',   emoji:'🧼', label:'세수 · 양치',      sub:'얼굴 씻고 이 닦기' },
+  { id:'meal',   emoji:'🍚', label:'아침밥 먹기',      sub:'천천히 다 먹기' },
+  { id:'bag',    emoji:'🎒', label:'가방 · 준비물',    sub:'등원 준비물 챙기기' },
+  { id:'study',  emoji:'📚', label:'책 읽기 · 공부 15분', sub:'앉아서 15분' },
+  { id:'tidy',   emoji:'🧸', label:'장난감 정리',      sub:'제자리에 돌려놓기' }
+];
+
+/* 보상 상자 */
+const REWARDS = [
+  { id:'sticker', emoji:'🎟️', name:'스티커 1장',       cost:3  },
+  { id:'snack',   emoji:'🍪', name:'간식 고르기',      cost:5  },
+  { id:'screen',  emoji:'🎬', name:'영화·만화 보기',   cost:7  },
+  { id:'weekend', emoji:'🎡', name:'주말 특별 놀이',   cost:10 }
+];
+
+/* 카테고리 */
+const CATS = [
+  { id:'all',     label:'전체',            emoji:'📚' },
+  { id:'family',  label:'가족·아이',       emoji:'🏠' },
+  { id:'english', label:'영어·학원',       emoji:'📘' },
+  { id:'ai',      label:'AI·바이브코딩',    emoji:'🛠' },
+  { id:'video',   label:'영상·수익화',      emoji:'🎬' },
+  { id:'pickle',  label:'피클·기타',        emoji:'🥒' }
+];
+
+/* 스레드 53개 — {a:작성자, s:한 줄 요약, d:날짜, u:원문, cat:분류, group:묶음, x:덧붙임 링크} */
+const THREADS = [
+  {"cat":"family","group":"가족 대시보드","a":"yang.insight","s":"등원 전쟁 끝낸 '가족 대시보드', 아이가 스스로 준비하고 기다림. 만드는 데 5분","d":"11/19","t":"07:38","u":"https://www.threads.com/@yang.insight/post/Df5yZwlAcS_","x":[]},
+  {"cat":"family","group":"가족 대시보드","a":"yang.insight","s":"대시보드 '공부' 탭: 숙제 끝내면 포켓몬볼 획득 → 도감 완성","d":"11/19","t":"10:10","u":"https://www.threads.com/@yang.insight/post/Df6tIYBgY6_","x":[]},
+  {"cat":"family","group":"가족 대시보드","a":"kikosrpings","s":"\"대시보드에 독을 풀었다\" 아들이 미션을 안 하고 버틸 수 있을까","d":"11/21","t":"09:35","u":"https://www.threads.com/@kikosrpings/post/Df-sUjEk8nY","x":[]},
+  {"cat":"family","group":"가족 대시보드","a":"official.jay","s":"가족 대시보드 제작자 Jay: 회사에서도 첫째 등원 준비를 실시간 체크, 아내가 화 안 낸 지 일주일","d":"11/20","t":"09:39","u":"https://www.threads.com/@official.jay/post/Df8PZy1Erom","x":[]},
+  {"cat":"family","group":"가족 대시보드","a":"official.jay","s":"7살 딸이 \"과학·시계 넣어줘\" → 아빠가 AI처럼 \"알겠어, 조금만 기다려\" 하고 기능 추가","d":"11/20","t":"09:40","u":"https://www.threads.com/@official.jay/post/Df89HnMkqqA","x":[]},
+  {"cat":"family","group":"가족 대시보드","a":"eeyu.littlelife","s":"Jay 대시보드에 포켓몬 도감·pokeapi 설명·기술 연동, 삼남매 네 명 아이 구조","d":"11/20","t":"09:42","u":"https://www.threads.com/@eeyu.littlelife/post/Df8lKUTobrQ","x":[]},
+  {"cat":"family","group":"가족 대시보드","a":"heeinthai","s":"포켓몬 대시보드 3일차: 스스로 등교 준비, 손뜯기 습관 교정까지. 클로드 무료로도 충분(유료 고민)","d":"11/21","t":"12:05","u":"https://www.threads.com/@heeinthai/post/Df_OHyIEw5A","x":[]},
+  {"cat":"family","group":"가족 대시보드","a":"official.jay","s":"아날로그 시계 공부 기능(정각·30분 해설+퀴즈) 제작, 난이도 확장 예정","d":"11/22","t":"11:07","u":"https://www.threads.com/@official.jay/post/DgB4zMXkg7g","x":[]},
+  {"cat":"family","group":"아이 학습 앱","a":"today_short_memo","s":"6살 딸 전용 학습앱을 클로드와 한 달 제작. \"음성은 내 목소리로 할 걸\" 후회","d":"11/19","t":"07:40","u":"https://www.threads.com/@today_short_memo/post/Df53vvYEtOl","x":[]},
+  {"cat":"family","group":"아이 학습 앱","a":"shin_namong","s":"아들과 3분 만에 만든 3D 수학 게임 '로보 수학 마을', 7살이 클로드와 대화하며 확장","d":"11/21","t":"09:22","u":"https://www.threads.com/@shin_namong/post/Df9_-GoETsW","x":[]},
+  {"cat":"family","group":"아이 학습 앱","a":"side_maker_log","s":"'공부할 시간 안 내도 되는' 단어 알림 앱에 퀴즈를 넣을지 고민","d":"11/20","t":"09:27","u":"https://www.threads.com/@side_maker_log/post/Df9Ks2sm7E0","x":[]},
+  {"cat":"family","group":"아이 학습 앱","a":"honeymom_kidsstep","s":"아이 공부루틴 앱 '반짝키즈', 주간·월간 리포트로 꾸준함 분석","d":"11/20","t":"09:36","u":"https://www.threads.com/@honeymom_kidsstep/post/Df824OOGJDJ","x":[]},
+  {"cat":"english","group":"영어 학습법","a":"jiwonnnnieee","s":"🇨🇦 영어 유튜버 시리즈(9) Kati Morton: 심리상담사 출신, 감정 표현 영어 훈련용","d":"11/19","t":"07:40","u":"https://www.threads.com/@jiwonnnnieee/post/Df6y19sESxN","x":[]},
+  {"cat":"english","group":"영어 학습법","a":"restartenglish1","s":"760문장 통암기(하루 3문장=7개월) 12월 스터디 모집, 도서 <동사중심 네이티브 영어표현력 사전>","d":"11/20","t":"10:10","u":"https://www.threads.com/@restartenglish1/post/Df8OV5SCtwj","x":[]},
+  {"cat":"english","group":"영어 학습법","a":"moamoa4455","s":"\"13살까지 230만원\" 아이 영어교육 로드맵 공유 예고","d":"11/21","t":"10:55","u":"https://www.threads.com/@moamoa4455/post/Df_6YSMD5O4","x":[]},
+  {"cat":"english","group":"영어 학습법","a":"yoonah.studyeng","s":"토플·아이엘츠 대비 유튜브 채널 추천(환경·사회 이슈, 학술 어휘)","d":"11/22","t":"09:48","u":"https://www.threads.com/@yoonah.studyeng/post/DgCdr4xoCnq","x":[]},
+  {"cat":"english","group":"학원 운영","a":"talktalkenglish_online","s":"겨울방학 학습 플랜용으로 대충 만든 것 공개 예고","d":"11/20","t":"08:57","u":"https://www.threads.com/@talktalkenglish_online/post/Df9p0a5j8CP","x":[]},
+  {"cat":"english","group":"학원 운영","a":"talktalkenglish_online","s":"EBS 프로그램 기획자에게 \"돈까스 사주고 싶다\"","d":"11/20","t":"09:11","u":"https://www.threads.com/@talktalkenglish_online/post/Df8iHp6EffB","x":[]},
+  {"cat":"english","group":"학원 운영","a":"talktalkenglish_online","s":"영어에세이 첨삭용으로 만든 AI 툴이 국어 글쓰기까지 첨삭, 가격도 혜자","d":"11/20","t":"09:21","u":"https://www.threads.com/@talktalkenglish_online/post/Df9Vc1ikcIx","x":[]},
+  {"cat":"english","group":"학원 운영","a":"talktalkenglish_online","s":"줌 링크 연동 + LMS까지 만든 자체 솔루션, 가치 알아주는 학원과만 성장","d":"11/21","t":"10:53","u":"https://www.threads.com/@talktalkenglish_online/post/DgAfgQ5jliX","x":[]},
+  {"cat":"english","group":"학원 운영","a":"talktalkenglish_online","s":"\"EBS 칼갈았냐\" 기획자 칭찬","d":"11/21","t":"09:42","u":"https://www.threads.com/@talktalkenglish_online/post/Df_IkE7EdvD","x":[]},
+  {"cat":"english","group":"학원 운영","a":"talktalkenglish_online","s":"라이브 수업 중 아이가 다른 인터넷창 열면 경고 뜨는 기능","d":"11/21","t":"11:08","u":"https://www.threads.com/@talktalkenglish_online/post/Df_NhQkkdEI","x":[]},
+  {"cat":"english","group":"학원 운영","a":"gaflkongkam","s":"개원 7년 만에 지피티로 학원 홈페이지 제작","d":"11/18","t":"10:10","u":"https://www.threads.com/@gaflkongkam/post/Df4Q_fNEkUu","x":[]},
+  {"cat":"english","group":"학원 운영","a":"because.i.needed","s":"출석·숙제만 체크하면 학부모 주간 리포트와 카톡 문구가 나오는 시트","d":"11/20","t":"09:10","u":"https://www.threads.com/@because.i.needed/post/Df9tN2XgThg","x":[]},
+  {"cat":"english","group":"학원 운영","a":"passdream_ai","s":"시험지 사진 5초 채점·오답 분석·학부모 리포트까지 '패스드림 AI'","d":"11/16","t":"12:00","u":"https://www.threads.com/@passdream_ai/post/DfyFCw7A3RT","x":[]},
+  {"cat":"ai","group":"AI·바이브코딩","a":"vibemak2r","s":"\"어사이드(Aside) 굿바이, 그동안 고마웠당. 이제 핸들러스만 쓸게\"","d":"11/19","t":"07:37","u":"https://www.threads.com/@vibemak2r/post/Df59TNAID0X","x":[]},
+  {"cat":"ai","group":"AI·바이브코딩","a":"reelbymoa","s":"클로드에 line-art-animation 스킬 추가 → 말로 설명하면 그림이 움직임","d":"11/19","t":"07:38","u":"https://www.threads.com/@reelbymoa/post/Df65nxlnbCP","x":[]},
+  {"cat":"ai","group":"AI·바이브코딩","a":"xx_no_life_","s":"노션으로 성적표를 두 가지 버전으로 제작","d":"11/19","t":"07:38","u":"https://www.threads.com/@xx_no_life_/post/Df6XIbAE37n","x":[]},
+  {"cat":"ai","group":"AI·바이브코딩","a":"hozazak","s":"\"요즘 클로드랑 노는 게 제일 재밌다, 하고 싶은 건 다 해준다\"","d":"11/20","t":"09:31","u":"https://www.threads.com/@hozazak/post/Df8kyRagJsn","x":[]},
+  {"cat":"ai","group":"AI·바이브코딩","a":"autoxsea","s":"PPT에 HTML 넣기, 활용법 아이디어 구함(반응 좋으면 스킬 공유)","d":"11/20","t":"09:40","u":"https://www.threads.com/@autoxsea/post/Df8odmrkWNn","x":[]},
+  {"cat":"ai","group":"AI·바이브코딩","a":"bearhugenglish","s":"\"코드 보고 입력하는 건 바이브코딩 아니다\" 말로 90% 구축 강의(화요일 오전 10시)","d":"11/21","t":"10:58","u":"https://www.threads.com/@bearhugenglish/post/DgAGeyKoPAq","x":[]},
+  {"cat":"ai","group":"AI·바이브코딩","a":"kimdohyungg","s":"[1/5] 이스라엘 수학 앱: 최고의 학습앱을 만들었는데 아무도 쓰지 않았다","d":"11/22","t":"11:59","u":"https://www.threads.com/@kimdohyungg/post/DgA545Biduo","x":[]},
+  {"cat":"ai","group":"AI·바이브코딩","a":"kuu_app","s":"ADHD인 아내를 위해 만든 '머릿속을 털어놓는 공간' 앱","d":"11/21","t":"12:00","u":"https://www.threads.com/@kuu_app/post/DgAObI6CaD4","x":[]},
+  {"cat":"ai","group":"AI·바이브코딩","a":"_dplabs_","s":"'AI 사무실' 만드는 중, 짬날 때마다 본인 맞춤으로 수정 중","d":"11/22","t":"09:59","u":"https://www.threads.com/@_dplabs_/post/DgCDQuzkUtA","x":[]},
+  {"cat":"video","group":"AI 영상·수익화","a":"ai_margin_","s":"주말 10분 세팅: 클로드로 내 분야 카드뉴스 원고 7개 뽑아 예약 발행","d":"11/20","t":"09:22","u":"https://www.threads.com/@ai_margin_/post/Df9oVUUm2lv","x":[]},
+  {"cat":"video","group":"AI 영상·수익화","a":"quitting_time_lab","s":"\"캡컷·브루 지워라\" 구글 옴니로 쇼핑 숏폼 편집, 프롬프트 8개","d":"11/21","t":"09:36","u":"https://www.threads.com/@quitting_time_lab/post/Df97XqYjYOk","x":[]},
+  {"cat":"video","group":"AI 영상·수익화","a":"quitting_time_lab","s":"위 스레드 전자책 링크 공유","d":"11/21","t":"09:38","u":"https://www.threads.com/@quitting_time_lab/post/Df976ZAlMo6","x":[{"t":"전자책","u":"https://jino7957.crekit.io/l/deals/3jqe3ojx"}]},
+  {"cat":"video","group":"AI 영상·수익화","a":"we_receipt_","s":"얼굴 없이 SNS 하기: AI로 인스타툰 1일 1툰, 그림보다 기획력","d":"11/21","t":"10:58","u":"https://www.threads.com/@we_receipt_/post/DgAGmbFmJK_","x":[]},
+  {"cat":"video","group":"AI 영상·수익화","a":"jh_aicafe","s":"ChatGPT 이미지 → 구글 Flow(Omni 1.2 Flash)로 도시 디오라마 영상, 매일 50크레딧 무료","d":"11/20","t":"12:01","u":"https://www.threads.com/@jh_aicafe/post/Df9jdUdmSfn","x":[]},
+  {"cat":"video","group":"AI 영상·수익화","a":"yutipman","s":"클로드를 '전담 릴스 작가'로 만드는 프롬프트 3개","d":"11/21","t":"12:02","u":"https://www.threads.com/@yutipman/post/DgAPwo0m1CO","x":[]},
+  {"cat":"video","group":"AI 영상·수익화","a":"vibe_margin","s":"AI로 월 1,400만~1억 버는 1인 사업자 5명, 초반 순서가 똑같았다","d":"11/22","t":"09:42","u":"https://www.threads.com/@vibe_margin/post/DgCzo7jG_tf","x":[]},
+  {"cat":"video","group":"AI 영상·수익화","a":"gogi_jangsa","s":"와이프 성화에 만든 카드뉴스 자동 발행기, 1시간도 안 걸림","d":"11/22","t":"09:49","u":"https://www.threads.com/@gogi_jangsa/post/DgCneAzD1wv","x":[]},
+  {"cat":"pickle","group":"피클 활용","a":"anamo10182019","s":"피클로 토끼와 거북이 동화 6장면·자막·검수까지 37초 영상, 약 16분 제작","d":"11/20","t":"09:11","u":"https://www.threads.com/@anamo10182019/post/Df8klb4AR0r","x":[]},
+  {"cat":"pickle","group":"피클 활용","a":"pink.life.plan.it","s":"폰 속 피클을 '지휘관'으로 클로드·GPT·어사이드·코덱스까지 웹 회의실에서 핑퐁, 사업 3개 운영","d":"11/22","t":"09:48","u":"https://www.threads.com/@pink.life.plan.it/post/DgC5XuMErzr","x":[]},
+  {"cat":"pickle","group":"피클 활용","a":"inthe2floor","s":"아마존 Bee 대신 피클+클로드로 아이폰 상시 녹음 → 맥에서 한국어 전사, 구독료 0원","d":"11/23","t":"09:49","u":"https://www.threads.com/@inthe2floor/post/DgEGYclo1kI","x":[]},
+  {"cat":"pickle","group":"피클 활용","a":"captainmobile_0fficial","s":"피클 PC 연동 오픈소스 3종(Windows 원격제어·브라우저/시트·Claude Code+Codex)","d":"11/23","t":"09:50","u":"https://www.threads.com/@captainmobile_0fficial/post/DgDAaCPj_-4","x":[{"t":"pickle-pc-control","u":"https://github.com/nahyunseok/pickle-pc-control"},{"t":"pickle-desk","u":"https://github.com/techinpark/pickle-desk"},{"t":"pickle-runner","u":"https://github.com/Seungyub-Jeon/pickle-runner"}]},
+  {"cat":"pickle","group":"피클 활용","a":"marianshin","s":"피클 이틀 사용기: 남도마켓 승인 민원 전화 대행, 상세페이지 제작·카페24 등록, 문의·주문 처리","d":"11/22","t":"11:08","u":"https://www.threads.com/@marianshin/post/DgBwIppksft","x":[]},
+  {"cat":"pickle","group":"수업 도구·그 밖","a":"pp_scarlettevans","s":"'조용히 하기 챌린지' 수달 앱: 교실이 조용하면 수달이 잠들고 시끄러우면 깨어남(마이크는 음량만 측정)","d":"11/21","t":"09:14","u":"https://www.threads.com/@pp_scarlettevans/post/Df-FEWJDN-E","x":[]},
+  {"cat":"pickle","group":"수업 도구·그 밖","a":"kotaeyeol","s":"QR로 입장해 O/X 칸으로 달려가는 멀티플레이 퀴즈 웹앱 'O/X 기술 광장'(최대 50명)","d":"11/21","t":"10:58","u":"https://www.threads.com/@kotaeyeol/post/Df_vy4AoEMI","x":[]},
+  {"cat":"pickle","group":"수업 도구·그 밖","a":"claire.j.choi","s":"'살아남기' 시리즈·생존전쟁 만화 감탄, \"만화적 사고 좋다\"","d":"11/19","t":"07:40","u":"https://www.threads.com/@claire.j.choi/post/Df7T0z-FU_8","x":[]},
+  {"cat":"pickle","group":"수업 도구·그 밖","a":"hyemzzee","s":"세계사가 재미없던 이유를 짚은 콘텐츠 감탄(@history_jongile)","d":"11/20","t":"10:10","u":"https://www.threads.com/@hyemzzee/post/Df8FXYDE_oy","x":[]},
+  {"cat":"pickle","group":"수업 도구·그 밖","a":"linni.earth","s":"\"기회는 준비된 사람이 아니라 일단 해보는 사람에게 온다\"","d":"11/19","t":"09:13","u":"https://www.threads.com/@linni.earth/post/Df63DlBmn-N","x":[]},
+  {"cat":"pickle","group":"수업 도구·그 밖","a":"logodowner","s":"12/12(토) 강남 클래스 안내, 10명만","d":"11/23","t":"09:41","u":"https://www.threads.com/@logodowner/post/DgCxld7jYLn","x":[{"t":"안내 페이지","u":"http://logod.kr/class/dec"}]}
+];
+</script>
+
+<script>
 /* ───────────── SHA-256 (2중 준비) ───────────── */
 function toHex(bytes){
   let out = '';
@@ -407,71 +685,138 @@ async function digest(text){
   }
   return sha256Pure(bytes);
 }
+</script>
 
-/* ───────────── 화면 동작 ───────────── */
+<script>
+/* ───────────── 앱 본체 ───────────── */
 (function () {
   'use strict';
 
-  const STORE_KEY = 'playground.profile';
-  const MAX_LEN = 4;
+  /* ── 작은 도구들 ── */
+  const $ = function (sel, root) { return (root || document).querySelector(sel); };
 
-  const pickScreen = document.getElementById('pick');
-  const pinScreen  = document.getElementById('pin');
-  const hubScreen  = document.getElementById('hub');
-  const lockCard   = document.getElementById('lockCard');
-  const dotsBox    = document.getElementById('dots');
-  const dots       = Array.prototype.slice.call(dotsBox.querySelectorAll('.dot'));
-  const msg        = document.getElementById('msg');
-  const pinEmoji   = document.getElementById('pinEmoji');
-  const pinName    = document.getElementById('pinName');
-  const profileList= document.getElementById('profileList');
-  const cards      = document.getElementById('cards');
-  const who        = document.getElementById('who');
-  const hubEmoji   = document.getElementById('hubEmoji');
+  function el(tag, className, text){
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined && text !== null) node.textContent = text;
+    return node;
+  }
 
-  let current = null;   // 지금 비밀번호를 받고 있는 프로필
+  const WEEK = ['일','월','화','수','목','금','토'];
+  function todayKey(){
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function prettyDate(){
+    const d = new Date();
+    return (d.getMonth() + 1) + '월 ' + d.getDate() + '일 ' + WEEK[d.getDay()] + '요일';
+  }
+
+  /* localStorage (사생활 보호 모드에서도 죽지 않게) */
+  const Store = {
+    get: function (key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (raw === null) return fallback;
+        const val = JSON.parse(raw);
+        return (val === null || val === undefined) ? fallback : val;
+      } catch (e) { return fallback; }
+    },
+    set: function (key, value) {
+      try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {}
+    },
+    del: function (key) {
+      try { localStorage.removeItem(key); } catch (e) {}
+    }
+  };
+
+  const K_STARS  = 'hub.stars';      /* 누적 별 (숫자) */
+  const K_TODAY  = 'hub.today';      /* { date:'YYYY-MM-DD', done:{ id:true } } */
+  const K_CLAIMS = 'hub.claims';     /* { rewardId: 횟수 } */
+  const K_SESS   = 'playground.profile';
+
+  function getStars(){
+    const n = Number(Store.get(K_STARS, 0));
+    return (isFinite(n) && n > 0) ? Math.floor(n) : 0;
+  }
+  function addStars(delta){
+    const next = Math.max(0, getStars() + delta);
+    Store.set(K_STARS, next);
+    return next;
+  }
+  /* 오늘 체크 상태 — 날짜가 바뀌면 오늘 것만 새로 시작 (누적 별은 그대로) */
+  function getToday(){
+    const key = todayKey();
+    let st = Store.get(K_TODAY, null);
+    if (!st || typeof st !== 'object' || st.date !== key) {
+      st = { date: key, done: {} };
+      Store.set(K_TODAY, st);
+    } else if (!st.done || typeof st.done !== 'object') {
+      st.done = {};
+      Store.set(K_TODAY, st);
+    }
+    return st;
+  }
+  function doneCount(){
+    const st = getToday();
+    return ROUTINES.filter(function (r) { return st.done[r.id] === true; }).length;
+  }
+  function getClaims(){
+    const c = Store.get(K_CLAIMS, {});
+    return (c && typeof c === 'object') ? c : {};
+  }
+
+  /* 토스트 */
+  let toastTimer = null;
+  function toast(message){
+    const box = $('#toast');
+    box.textContent = message;
+    box.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { box.classList.remove('show'); }, 2100);
+  }
+
+  /* ── 화면 전환 ── */
+  const screens = { pick: $('#pick'), pin: $('#pin'), space: $('#space') };
+  function show(name){
+    Object.keys(screens).forEach(function (k) { screens[k].hidden = (k !== name); });
+    window.scrollTo(0, 0);
+  }
+
+  let current = null;
   let entered = '';
   let busy = false;
   let errorTimer = null;
 
-  function show(which) {
-    pickScreen.hidden = which !== 'pick';
-    pinScreen.hidden  = which !== 'pin';
-    hubScreen.hidden  = which !== 'hub';
-    window.scrollTo(0, 0);
-  }
+  const lockCard = $('#lockCard');
+  const dotsBox  = $('#dots');
+  const dots     = Array.prototype.slice.call(dotsBox.querySelectorAll('.dot'));
+  const msg      = $('#msg');
 
-  /* 프로필 카드 그리기 */
+  /* ── 프로필 카드 ── */
   PROFILES.forEach(function (p) {
-    const btn = document.createElement('button');
+    const btn = el('button', 'profile');
     btn.type = 'button';
-    btn.className = 'profile';
-    const av = document.createElement('span');
-    av.className = 'avatar';
+    const av = el('span', 'avatar', p.emoji);
     av.setAttribute('aria-hidden', 'true');
-    av.textContent = p.emoji;
-    const nm = document.createElement('span');
-    nm.className = 'pname';
-    nm.textContent = p.name;
+    const nm = el('span', 'pname', p.name);
+    const tg = el('span', 'ptag', p.tag);
     btn.appendChild(av);
     btn.appendChild(nm);
+    btn.appendChild(tg);
     btn.addEventListener('click', function () { startPin(p); });
-    profileList.appendChild(btn);
+    $('#profileList').appendChild(btn);
   });
 
-  function drawDots() {
-    dots.forEach(function (dot, i) {
-      dot.classList.toggle('on', i < entered.length);
-    });
+  function drawDots(){
+    dots.forEach(function (dot, i) { dot.classList.toggle('on', i < entered.length); });
   }
-
-  function resetDots() {
+  function resetDots(){
     entered = '';
     dotsBox.classList.remove('err');
     drawDots();
   }
-
-  function showError(text) {
+  function showError(text){
     clearTimeout(errorTimer);
     msg.textContent = text;
     dotsBox.classList.add('err');
@@ -484,59 +829,17 @@ async function digest(text){
     }, 900);
   }
 
-  function startPin(profile) {
+  function startPin(profile){
     current = profile;
-    pinEmoji.textContent = profile.emoji;
-    pinName.textContent = profile.name + ' 비밀번호';
-    document.title = profile.name + ' · 우리 집 놀이터';
+    $('#pinEmoji').textContent = profile.emoji;
+    $('#pinName').textContent = profile.name + ' 비밀번호';
     resetDots();
     msg.textContent = '';
     lockCard.classList.remove('err');
     show('pin');
   }
 
-  function renderApps(profile) {
-    cards.innerHTML = '';
-    profile.apps.forEach(function (id) {
-      const app = APPS[id];
-      if (!app) return;
-      const a = document.createElement('a');
-      a.className = 'card ' + app.cls;
-      a.href = app.href;
-
-      const icon = document.createElement('span');
-      icon.className = 'icon';
-      icon.setAttribute('aria-hidden', 'true');
-      icon.textContent = app.emoji;
-
-      const text = document.createElement('span');
-      text.className = 'text';
-      const name = document.createElement('span');
-      name.className = 'name';
-      name.textContent = app.title;
-      const desc = document.createElement('span');
-      desc.className = 'desc';
-      desc.textContent = app.desc;
-      text.appendChild(name);
-      text.appendChild(desc);
-
-      a.appendChild(icon);
-      a.appendChild(text);
-      cards.appendChild(a);
-    });
-  }
-
-  function enterSpace(profile) {
-    hubEmoji.textContent = profile.emoji;
-    who.textContent = profile.name + '의 공간';
-    document.title = profile.name + '의 공간 · 우리 집 놀이터';
-    renderApps(profile);
-    resetDots();
-    msg.textContent = '';
-    show('hub');
-  }
-
-  async function submit() {
+  async function submit(){
     if (busy || !current) return;
     busy = true;
     const target = current;
@@ -544,66 +847,398 @@ async function digest(text){
     let hash = '';
     try { hash = await digest(SALT + input); } catch (e) { hash = ''; }
     busy = false;
-
     if (hash && hash === target.pinHash) {
-      try { sessionStorage.setItem(STORE_KEY, target.key); } catch (e) {}
+      try { sessionStorage.setItem(K_SESS, target.key); } catch (e) {}
       enterSpace(target);
     } else {
       showError('비밀번호가 맞지 않아요. 다시 눌러 주세요.');
     }
   }
 
-  function press(digit) {
+  function press(digit){
     if (dotsBox.classList.contains('err') || busy) return;
-    if (entered.length >= MAX_LEN) return;
+    if (entered.length >= 4) return;
     entered += digit;
     msg.textContent = '';
     drawDots();
-    if (entered.length === MAX_LEN) {
+    if (entered.length === 4) {
       const filled = entered;
       setTimeout(function () { if (entered === filled) submit(); }, 140);
     }
   }
-
-  function removeOne() {
+  function removeOne(){
     if (dotsBox.classList.contains('err') || busy) return;
     if (!entered.length) return;
     entered = entered.slice(0, -1);
     drawDots();
   }
 
-  function goPick() {
+  function goPick(){
     clearTimeout(errorTimer);
     current = null;
-    try { sessionStorage.removeItem(STORE_KEY); } catch (e) {}
-    document.title = '우리 집 놀이터';
+    try { sessionStorage.removeItem(K_SESS); } catch (e) {}
+    document.body.classList.remove('theme-kid', 'theme-dad');
+    document.title = '우리 집 올인원 허브';
     resetDots();
     msg.textContent = '';
     lockCard.classList.remove('err');
     show('pick');
   }
 
-  document.getElementById('pad').addEventListener('click', function (event) {
+  /* ── 공통 조각 ── */
+  function section(title, note, body, id){
+    const sec = el('section', 'section');
+    if (id) sec.id = id;
+    const head = el('div', 'sec-head');
+    head.appendChild(el('h2', 'sec-title', title));
+    if (note) head.appendChild(el('p', 'sec-note', note));
+    sec.appendChild(head);
+    sec.appendChild(body);
+    return sec;
+  }
+
+  function appCards(profile){
+    const grid = el('div', 'cards');
+    profile.apps.forEach(function (id) {
+      const app = APPS[id];
+      if (!app) return;
+      const a = el('a', 'card ' + app.cls);
+      a.href = app.href;
+      const icon = el('span', 'icon', app.emoji);
+      icon.setAttribute('aria-hidden', 'true');
+      const text = el('span', 'text');
+      text.appendChild(el('span', 'name', app.title));
+      text.appendChild(el('span', 'desc', app.desc));
+      a.appendChild(icon);
+      a.appendChild(text);
+      grid.appendChild(a);
+    });
+    return grid;
+  }
+
+  /* ── 별 현황 판 ── */
+  function starBoard(){
+    const board = el('div', 'star-board');
+    const total = el('div', 'star-total');
+    total.appendChild(el('span', 'n', String(getStars())));
+    total.appendChild(el('span', 'u', '⭐'));
+    const side = el('div', 'star-side');
+    const line = el('div', 'star-line');
+    line.appendChild(el('span', '', '오늘 루틴 ' + doneCount() + ' / ' + ROUTINES.length));
+    line.appendChild(el('span', '', Math.round(doneCount() / ROUTINES.length * 100) + '%'));
+    const bar = el('div', 'bar');
+    const fill = el('i');
+    fill.style.width = (doneCount() / ROUTINES.length * 100) + '%';
+    bar.appendChild(fill);
+    side.appendChild(line);
+    side.appendChild(bar);
+    board.appendChild(total);
+    board.appendChild(side);
+    return board;
+  }
+
+  /* ══════════ Zoe 공간 ══════════ */
+  function renderKid(body){
+    const profile = PROFILES.filter(function (p) { return p.space === 'kid'; })[0];
+
+    /* 1) 오늘의 루틴 */
+    const grid = el('div', 'routines');
+    const st = getToday();
+    ROUTINES.forEach(function (r) {
+      const done = st.done[r.id] === true;
+      const card = el('button', 'routine' + (done ? ' done' : ''));
+      card.type = 'button';
+      card.dataset.id = r.id;
+      card.setAttribute('aria-pressed', done ? 'true' : 'false');
+      const emoji = el('span', 'r-emoji', r.emoji);
+      emoji.setAttribute('aria-hidden', 'true');
+      card.appendChild(emoji);
+      card.appendChild(el('span', 'r-label', r.label));
+      card.appendChild(el('span', 'r-sub', r.sub));
+      const check = el('span', 'r-check', '✓');
+      check.setAttribute('aria-hidden', 'true');
+      card.appendChild(check);
+      card.appendChild(el('span', 'r-star', '+1⭐'));
+      card.addEventListener('click', function () { toggleRoutine(r, card); });
+      grid.appendChild(card);
+    });
+
+    body.appendChild(section('오늘의 루틴 · 등원 준비', prettyDate(), starBoard(), 'star-board'));
+    body.appendChild(section('하나씩 눌러서 완료!', '완료하면 별 1개', grid));
+
+    /* 2) 보상 상자 */
+    const rg = el('div', 'rewards');
+    const claims = getClaims();
+    REWARDS.forEach(function (r) {
+      const box = el('div', 'reward');
+      box.appendChild(el('div', 'rw-emoji', r.emoji));
+      box.appendChild(el('div', 'rw-name', r.name));
+      box.appendChild(el('div', 'rw-cost', r.cost + '⭐'));
+      const btn = el('button', 'rw-btn', '보상 받기');
+      btn.type = 'button';
+      const enough = getStars() >= r.cost;
+      btn.disabled = !enough;
+      if (!enough) btn.textContent = '별이 ' + (r.cost - getStars()) + '개 더 필요해요';
+      btn.addEventListener('click', function () { claimReward(r, btn); });
+      box.appendChild(btn);
+      const cnt = claims[r.id] || 0;
+      box.appendChild(el('div', 'rw-count', cnt ? '지금까지 ' + cnt + '번 받았어요' : '아직 받은 적 없어요'));
+      rg.appendChild(box);
+    });
+
+    body.appendChild(section('별 모으기 · 보상 상자', '모은 별로 바꿔요', rg));
+
+    /* 3) 놀이터 */
+    body.appendChild(section('Zoe 놀이터', '게임 3종', appCards(profile)));
+  }
+
+  function toggleRoutine(r, card){
+    const st = getToday();
+    const wasDone = st.done[r.id] === true;
+    if (wasDone) {
+      delete st.done[r.id];
+      addStars(-1);
+      toast('체크를 풀었어요 · 별 1개 돌려놓기');
+    } else {
+      st.done[r.id] = true;
+      addStars(1);
+      toast('⭐ 별 1개 받았어요!');
+      if (card && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        card.classList.add('pop');
+        setTimeout(function () { card.classList.remove('pop'); }, 360);
+      }
+    }
+    Store.set(K_TODAY, st);
+    renderSpace(current);
+    const all = doneCount() === ROUTINES.length;
+    if (all && !wasDone) setTimeout(function () { toast('🎉 오늘 루틴 모두 완료!'); }, 1200);
+  }
+
+  function claimReward(r, btn){
+    const stars = getStars();
+    if (stars < r.cost) {
+      toast('별이 ' + (r.cost - stars) + '개 더 필요해요');
+      return;
+    }
+    Store.set(K_STARS, stars - r.cost);
+    const claims = getClaims();
+    claims[r.id] = (claims[r.id] || 0) + 1;
+    Store.set(K_CLAIMS, claims);
+    toast('🎁 ' + r.name + ' 받았어요! (별 ' + r.cost + '개 사용)');
+    renderSpace(current);
+  }
+
+  /* ══════════ 라이언 공간 ══════════ */
+  let boardState = { cat: 'all', q: '' };
+
+  function renderDad(body){
+    const profile = PROFILES.filter(function (p) { return p.space === 'dad'; })[0];
+
+    /* 1) Zoe 루틴 현황 */
+    const mini = el('div', 'star-board');
+    const total = el('div', 'star-total');
+    total.appendChild(el('span', 'n', String(getStars())));
+    total.appendChild(el('span', 'u', '⭐'));
+    const side = el('div', 'star-side');
+    const line = el('div', 'star-line');
+    line.appendChild(el('span', '', 'Zoe 오늘 루틴 ' + doneCount() + ' / ' + ROUTINES.length));
+    line.appendChild(el('span', '', Math.round(doneCount() / ROUTINES.length * 100) + '%'));
+    const bar = el('div', 'bar');
+    const fill = el('i');
+    fill.style.width = (doneCount() / ROUTINES.length * 100) + '%';
+    bar.appendChild(fill);
+    side.appendChild(line);
+    side.appendChild(bar);
+    side.appendChild(el('p', 'sec-note', prettyDate() + ' · 같은 기기 기록 기준'));
+    mini.appendChild(total);
+    mini.appendChild(side);
+    body.appendChild(section('Zoe 루틴 현황', '누적 별 · 오늘 완료율', mini));
+
+    /* 2) 스레드 보드 */
+    const board = el('div', 'board');
+
+    const searchWrap = el('div', 'search-wrap');
+    searchWrap.appendChild(el('span', 'search-ico', '🔍'));
+    const input = el('input', 'search');
+    input.type = 'search';
+    input.placeholder = '키워드로 찾기 (예: 대시보드, 영어, 피클)';
+    input.setAttribute('aria-label', '스레드 검색');
+    input.value = boardState.q;
+    const clear = el('button', 'search-clear', '✕');
+    clear.type = 'button';
+    clear.setAttribute('aria-label', '검색어 지우기');
+    clear.hidden = !boardState.q;
+    searchWrap.appendChild(input);
+    searchWrap.appendChild(clear);
+    board.appendChild(searchWrap);
+
+    const tabs = el('div', 'tabs');
+    tabs.setAttribute('role', 'tablist');
+    board.appendChild(tabs);
+
+    const resultLine = el('p', 'result-line');
+    board.appendChild(resultLine);
+
+    const grid = el('div', 'threads');
+    board.appendChild(grid);
+
+    body.appendChild(section('스레드 북마크 보드', '최근 4일 · ' + THREADS.length + '개', board));
+
+    /* 3) 내 놀이터 */
+    body.appendChild(section('내 놀이터 & 웹앱', '게임 4종', appCards(profile)));
+
+    input.addEventListener('input', function () {
+      boardState.q = input.value;
+      clear.hidden = !input.value;
+      paintThreads();
+    });
+    clear.addEventListener('click', function () {
+      boardState.q = '';
+      input.value = '';
+      clear.hidden = true;
+      input.focus();
+      paintThreads();
+    });
+
+    function countOf(cat){
+      if (cat === 'all') return THREADS.length;
+      return THREADS.filter(function (t) { return t.cat === cat; }).length;
+    }
+
+    function paintTabs(){
+      tabs.innerHTML = '';
+      CATS.forEach(function (c) {
+        const b = el('button', 'tab');
+        b.type = 'button';
+        b.setAttribute('aria-pressed', boardState.cat === c.id ? 'true' : 'false');
+        b.appendChild(el('span', '', (c.emoji ? c.emoji + ' ' : '') + c.label));
+        b.appendChild(el('span', 'cnt', String(countOf(c.id))));
+        b.addEventListener('click', function () {
+          boardState.cat = c.id;
+          paintTabs();
+          paintThreads();
+        });
+        tabs.appendChild(b);
+      });
+    }
+
+    function matches(t, terms){
+      if (boardState.cat !== 'all' && t.cat !== boardState.cat) return false;
+      if (!terms.length) return true;
+      const hay = (t.s + ' ' + t.a + ' ' + t.group + ' ' + t.d).toLowerCase();
+      return terms.every(function (w) { return hay.indexOf(w) !== -1; });
+    }
+
+    function paintThreads(){
+      grid.innerHTML = '';
+      const terms = boardState.q.trim().toLowerCase().split(/\s+/).filter(Boolean);
+      const list = THREADS.filter(function (t) { return matches(t, terms); });
+      resultLine.textContent = boardState.cat === 'all' && !terms.length
+        ? '전체 ' + THREADS.length + '개'
+        : list.length + '개 찾음 / 전체 ' + THREADS.length + '개';
+
+      if (!list.length) {
+        const empty = el('div', 'empty');
+        empty.appendChild(el('span', '', '🔎'));
+        empty.appendChild(document.createTextNode('찾는 스레드가 없어요. 다른 낱말로 해 보세요.'));
+        grid.appendChild(empty);
+        return;
+      }
+
+      list.forEach(function (t) {
+        const card = el('article', 'thread');
+        const a = el('a', 't-link');
+        a.href = t.u;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+
+        const top = el('div', 't-top');
+        top.appendChild(el('span', 't-handle', '@' + t.a));
+        top.appendChild(el('span', 't-date', t.d));
+        a.appendChild(top);
+        a.appendChild(el('p', 't-sum', t.s));
+
+        const foot = el('div', 't-foot');
+        foot.appendChild(el('span', 't-chip', t.group));
+        foot.appendChild(el('span', 't-go', '원문 열기 ↗'));
+        a.appendChild(foot);
+
+        card.appendChild(a);
+
+        if (t.x && t.x.length) {
+          const ex = el('div', 't-extra');
+          t.x.forEach(function (link) {
+            const la = el('a', '', link.t + ' ↗');
+            la.href = link.u;
+            la.target = '_blank';
+            la.rel = 'noopener noreferrer';
+            ex.appendChild(la);
+          });
+          card.appendChild(ex);
+        }
+        grid.appendChild(card);
+      });
+    }
+
+    paintTabs();
+    paintThreads();
+  }
+
+  /* ── 공간 그리기 ── */
+  let midnightTimer = null;
+
+  function renderSpace(profile){
+    const body = $('#spaceBody');
+    body.innerHTML = '';
+    if (!profile) return;
+    if (profile.space === 'kid') renderKid(body);
+    else renderDad(body);
+  }
+
+  function enterSpace(profile){
+    document.body.classList.remove('theme-kid', 'theme-dad');
+    document.body.classList.add('theme-' + profile.space);
+    $('#spaceEmoji').textContent = profile.emoji;
+    $('#spaceName').textContent = profile.name + '의 공간';
+    document.title = profile.name + '의 공간 · 우리 집 허브';
+    renderSpace(profile);
+    resetDots();
+    msg.textContent = '';
+    show('space');
+    clearInterval(midnightTimer);
+    midnightTimer = setInterval(function () {
+      if (getToday().date !== todayKey()) renderSpace(profile);
+    }, 60000);
+  }
+
+  /* ── 입력 연결 ── */
+  $('#pad').addEventListener('click', function (event) {
     const btn = event.target.closest('button[data-key]');
     if (btn) press(btn.dataset.key);
   });
-  document.getElementById('delBtn').addEventListener('click', removeOne);
-  document.getElementById('backBtn').addEventListener('click', goPick);
-  document.getElementById('lockBtn').addEventListener('click', goPick);
+  $('#delBtn').addEventListener('click', removeOne);
+  $('#backBtn').addEventListener('click', goPick);
+  $('#lockBtn').addEventListener('click', goPick);
 
   document.addEventListener('keydown', function (event) {
-    if (!pinScreen.hidden) {
+    if (!screens.pin.hidden) {
       if (/^[0-9]$/.test(event.key)) press(event.key);
       else if (event.key === 'Backspace') { event.preventDefault(); removeOne(); }
       else if (event.key === 'Escape') goPick();
-    } else if (!hubScreen.hidden && event.key === 'Escape') {
+    } else if (!screens.space.hidden && event.key === 'Escape') {
       goPick();
+    }
+  });
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible' && current && !screens.space.hidden) {
+      if (getToday().date !== todayKey()) renderSpace(current);
     }
   });
 
   /* 같은 탭에서 새로 고쳐도 다시 묻지 않음 */
   let saved = null;
-  try { saved = sessionStorage.getItem(STORE_KEY); } catch (e) {}
+  try { saved = sessionStorage.getItem(K_SESS); } catch (e) {}
   const savedProfile = saved ? PROFILES.filter(function (p) { return p.key === saved; })[0] : null;
   if (savedProfile) enterSpace(savedProfile);
 })();
