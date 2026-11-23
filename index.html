@@ -1196,6 +1196,7 @@ async function digest(text){
   }
 
   function enterSpace(profile){
+    current = profile;
     document.body.classList.remove('theme-kid', 'theme-dad');
     document.body.classList.add('theme-' + profile.space);
     $('#spaceEmoji').textContent = profile.emoji;
