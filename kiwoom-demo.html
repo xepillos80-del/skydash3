@@ -1071,7 +1071,7 @@ $('#t2File').addEventListener('change', (e) => {
 });
 
 /* ---------------- 탭 3 : 실제 텍스트 분석 ---------------- */
-const STOP = new Set(('a an the and or but so if then than that this these those there here their them they it its is are was were be been being am do does did doing have has had having will would can could shall should may might must to of in on at by for with from into about over under after before between during through out off up down again very too also just only not no nor yes as when while because though although how what which who whom whose why where all any some more most much many few little both each other another such own same he she we you i me my your his her our us him his hers ours yours theirs one two three four five first second next last now never ever still even well back own')
+const STOP = new Set(('a an the every and or but so if then than that this these those there here their them they it its is are was were be been being am do does did doing have has had having will would can could shall should may might must to of in on at by for with from into about over under after before between during through out off up down again very too also just only not no nor yes as when while because though although how what which who whom whose why where all any some more most much many few little both each other another such own same he she we you i me my your his her our us him his hers ours yours theirs one two three four five first second next last now never ever still even well back own')
   .split(/\s+/));
 const DISTRACT = ['gentle', 'gather', 'travel', 'wisdom', 'quietly', 'famous', 'hidden', 'brave', 'energy', 'promise', 'wonder', 'forest', 'clever', 'steady', 'kindness', 'journey', 'handle', 'shelter', 'narrow', 'delight'];
 
@@ -1172,11 +1172,18 @@ function buildT3() {
     used.add(lw);
     const before = s.slice(0, t.i);
     const after = s.slice(t.i + t.w.length);
-    // 오답 후보
-    const pool = keySet.filter(k => k.toLowerCase() !== lw && !used.has(k.toLowerCase()));
+    // 오답 후보 — 같은 문장에 나온 단어는 피하고, 같은 어미를 먼저 씁니다
+    const sameSent = new Set(tokensOf(s).map(x => x.w.toLowerCase()));
+    let pool = keySet.filter(k => {
+      const lk = k.toLowerCase();
+      return lk !== lw && !used.has(lk) && !sameSent.has(lk);
+    });
+    const tail = lw.slice(-1);
+    const sameForm = pool.filter(k => k.slice(-1).toLowerCase() === tail);
+    if (sameForm.length >= 2) pool = sameForm.concat(pool.filter(k => sameForm.indexOf(k) < 0));
     let opts = shuffle(pool).slice(0, 3);
     if (opts.length < 3) {
-      const pad = shuffle(DISTRACT.filter(d => !opts.includes(d) && d !== lw));
+      const pad = shuffle(DISTRACT.filter(d => !opts.includes(d) && d !== lw && !sameSent.has(d)));
       opts = opts.concat(pad.slice(0, 3 - opts.length));
     }
     const options = shuffle([t.w, ...opts]);
