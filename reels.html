@@ -21,6 +21,7 @@ body{
   background:var(--bg); color:var(--text); font-size:14px;
   font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;
   -webkit-font-smoothing:antialiased; overscroll-behavior:none;
+  display:flex; flex-direction:column; height:100dvh; overflow:hidden;
 }
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer;border:0;background:none;padding:0}
@@ -50,7 +51,7 @@ img,video{display:block;max-width:100%}
 .brand .sub{font-weight:500;font-size:11px;color:var(--muted);letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .topActions{display:flex;gap:8px;flex:0 0 auto}
 
-.layout{flex:1;min-height:0;display:grid;grid-template-columns:308px minmax(0,1fr) 366px;gap:10px;padding:10px}
+.layout{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:308px minmax(0,1fr) 366px;gap:10px;padding:10px;overflow:hidden}
 .col{min-height:0;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:11px;overflow:auto}
 .colHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}
 .colHead h2{font-size:12.5px;margin:0;font-weight:800;letter-spacing:.2px;color:#d7d7e2}
@@ -74,8 +75,8 @@ img,video{display:block;max-width:100%}
 
 /* ---------- center preview ---------- */
 .center{display:flex;flex-direction:column;align-items:center;gap:8px;overflow:hidden;padding:10px}
-.previewWrap{position:relative;flex:1 1 auto;min-height:0;width:100%;display:flex;align-items:center;justify-content:center}
-#preview{height:100%;max-height:100%;width:auto;max-width:100%;aspect-ratio:9/16;background:#000;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.55),0 0 0 1px #1e1e26;touch-action:manipulation}
+.previewWrap{position:relative;flex:1 1 0;min-height:0;width:100%;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#preview{height:100%;max-height:100%;width:auto;max-width:100%;object-fit:contain;aspect-ratio:9/16;background:#000;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.55),0 0 0 1px #1e1e26;touch-action:manipulation}
 .emptyState{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;border:1.5px dashed #2c2c38;border-radius:14px;color:var(--muted);font-size:13px;line-height:1.7;padding:24px;background:#0c0c11}
 .emptyState b{color:#d8d8e4;font-size:14px}
 .emptyState .big{font-size:26px;opacity:.55}
@@ -773,7 +774,8 @@ function renderSegments(){
   const total = totalDur() || 1;
   bar.innerHTML = S.cuts.map((c,i)=>{
     const w = Math.max(2, (cutDur(c)/total)*100);
-    return '<div class="seg ' + (i===S.cur?'on':'') + '" data-i="' + i + '" style="flex:0 0 ' + w + '%" title="' + (i+1) + '번째 컷"></div>';
+    const cls = i === S.cur ? 'on' : (player.playing && i < player.cut ? 'done' : '');
+    return '<div class="seg ' + cls + '" data-i="' + i + '" style="flex:0 0 ' + w + '%" title="' + (i+1) + '번째 컷"></div>';
   }).join('');
 }
 $('segbar').addEventListener('click', e=>{
@@ -782,7 +784,7 @@ $('segbar').addEventListener('click', e=>{
   cue(+s.dataset.i);
 });
 
-function updateTransport(){
+function updateTransport(skipSegments){
   const c = curCut();
   $('tCut').textContent = '컷 ' + (S.cuts.length? (S.cur+1) : 0) + ' / ' + S.cuts.length;
   if(!c){ $('tTime').textContent = '0:00.0 / 0:00.0'; return; }
@@ -792,7 +794,7 @@ function updateTransport(){
   pos = clamp(pos - c.in, 0, cutDur(c));
   $('tTime').textContent = fmt(pos) + ' / ' + fmt(cutDur(c));
   $('btnPlay').textContent = player.playing ? '❚❚' : '▶';
-  renderSegments();
+  if(!skipSegments) renderSegments();
 }
 
 /* ================= subtitle drawing ================= */
@@ -962,6 +964,7 @@ function tick(){
   }
   drawScene(ctx, W, H, cut, clip);
   if(player.onProgress) player.onProgress(progressNow());
+  if((player.frames = (player.frames||0) + 1) % 4 === 0) updateTransport(true);
   player.raf = requestAnimationFrame(tick);
 }
 
@@ -1384,6 +1387,7 @@ function chooseClip(clip){
   cut.out = Math.min(dur, 3);
   M.clip = clip;
   M.in = cut.in; M.out = cut.out;
+  M.cutIndex = S.cur;
   M.lockLen = Math.max(0.2, M.out - M.in);
   $('lockLen').checked = M.lock;
   renderClips(); renderCuts(); syncProps();
@@ -1581,7 +1585,7 @@ document.querySelectorAll('.mtab').forEach(b=>{
 /* ================= export ================= */
 const exModal = $('exportModal');
 const exCanvas = $('exCanvas');
-let exUrl = null, exName = '', exRunning = false, exCancelFlag = false;
+let exUrl = null, exName = '', exRunning = false, exCancelFlag = false, pendingClose = false;
 
 function pickMimeList(){
   if(!window.MediaRecorder) return [''];
@@ -1638,7 +1642,7 @@ function openExportModal(){
   drawScene(exCanvas.getContext('2d'), exCanvas.width, exCanvas.height, cut, getClip(cut.clipId));
 }
 function closeExportModal(){
-  if(exRunning){ exCancelFlag = true; return; }
+  if(exRunning){ exCancelFlag = true; pendingClose = true; stopPlayback('cancel'); return; }
   exModal.hidden = true;
   document.body.style.overflow = '';
   try{ $('exVideo').pause(); }catch(e){}
@@ -1686,7 +1690,7 @@ async function runExport(){
     toast('이 브라우저는 영상 녹화를 지원하지 않아요. 사파리/크롬 최신 버전에서 열어 주세요.');
     return;
   }
-  exRunning = true; exCancelFlag = false;
+  exRunning = true; exCancelFlag = false; pendingClose = false;
   $('exStart').disabled = true;
   $('exCancel').hidden = false;
   $('exProg').hidden = false;
@@ -1778,6 +1782,7 @@ async function runExport(){
     $('exNote').textContent = '내보내기를 중단했어요.';
     toast('내보내기를 중단했어요');
     exCancelFlag = false;
+    if(pendingClose){ pendingClose = false; exModal.hidden = true; document.body.style.overflow = ''; }
     return;
   }
 
