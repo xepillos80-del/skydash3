@@ -95,6 +95,9 @@ button{font-family:inherit}
 
 .demo-grid{display:grid;grid-template-columns:minmax(0,.96fr) minmax(0,1.04fr);gap:22px;align-items:start}
 .col-left,.col-right{min-width:0}
+.run-card{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;padding:14px;border-radius:18px;border:1px solid color-mix(in srgb,var(--accent) 32%,transparent);background:linear-gradient(150deg,color-mix(in srgb,var(--accent) 13%,var(--panel)),color-mix(in srgb,var(--accent2) 8%,var(--panel)));box-shadow:0 14px 34px rgba(59,130,246,.18)}
+.run-card .btn{width:100%}
+.run-hint{font-size:11.5px;color:var(--muted);text-align:center;font-weight:600}
 
 /* ---------- paper (교재 사진처럼) ---------- */
 .paper-shell{position:relative;border-radius:16px;padding:14px;background:linear-gradient(160deg,#2a2318,#1a1610);box-shadow:var(--shadow)}
@@ -357,12 +360,15 @@ button{font-family:inherit}
           </div>
         </div>
         <div class="paper-actions">
-          <button class="btn primary xl" id="t1Run">✨ AI 분석 시작</button>
           <button class="btn ghost" id="t1Read">🔊 지문 듣기</button>
         </div>
-            <p class="micro">실제 시연용 샘플입니다. 교재를 촬영한 것처럼 보이도록 만든 지문 카드 2종을 준비했어요.</p>
+        <p class="micro">교재를 촬영한 것처럼 만든 지문 카드 2종입니다. 실제 시연은 옆의 <b>AI 분석 시작</b>을 누르면 됩니다.</p>
       </div>
       <div class="col-right">
+        <div class="run-card">
+          <button class="btn primary xl" id="t1Run">✨ AI 분석 시작</button>
+          <span class="run-hint">샘플 지문 2종 · 분석에 약 1.2초</span>
+        </div>
         <div class="placeholder" id="t1Placeholder">
           <h4>이렇게 진행돼요</h4>
           <p>지문 카드를 고르고 <b>AI 분석 시작</b>을 누르면 1초 만에 결과가 펼쳐집니다.</p>
