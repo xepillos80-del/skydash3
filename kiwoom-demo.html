@@ -76,7 +76,7 @@ button{font-family:inherit}
 .tab[aria-selected="true"] .ic{background:linear-gradient(140deg,var(--accent),var(--accent2));color:#06101f}
 
 /* generic */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:13px;border:1px solid var(--line2);background:var(--panel);color:var(--txt);font-weight:700;font-size:14px;padding:0 16px;height:46px;cursor:pointer;transition:.18s;letter-spacing:-.01em}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:13px;border:1px solid var(--line2);background:var(--panel);color:var(--txt);font-weight:700;font-size:14px;padding:0 16px;height:46px;cursor:pointer;transition:.18s;letter-spacing:-.01em;white-space:nowrap}
 .btn:hover{transform:translateY(-1px);border-color:var(--line2);background:var(--panel2)}
 .btn:active{transform:translateY(0)}
 .btn.primary{background:linear-gradient(135deg,var(--accent),#3f7cf0);border-color:transparent;color:#fff;box-shadow:0 12px 30px rgba(59,130,246,.36)}
@@ -245,7 +245,7 @@ button{font-family:inherit}
 .sent3{border:1px solid var(--line);border-radius:15px;padding:14px;background:var(--panel2)}
 .s3-head{display:flex;align-items:center;gap:9px;margin-bottom:10px}
 .s3-num{width:22px;height:22px;flex:0 0 22px;border-radius:7px;background:var(--panel3);display:grid;place-items:center;font-size:11.5px;font-weight:800;color:var(--accent2)}
-.s3-head .spk{margin-left:auto;width:auto;height:30px;padding:0 10px;border-radius:9px;font-size:11.5px;font-weight:700;gap:5px;display:inline-flex}
+.s3-head .spk{margin-left:auto;width:auto;height:30px;padding:0 11px;border-radius:9px;font-size:11.5px;font-weight:700;gap:5px;display:inline-flex;flex:0 0 auto;white-space:nowrap;line-height:1}
 .s3-line{font-family:Georgia,"Times New Roman",serif;font-size:16px;line-height:2;margin-bottom:12px;color:var(--txt)}
 .blank{display:inline-block;min-width:78px;text-align:center;border-bottom:2px solid color-mix(in srgb,var(--accent) 65%,transparent);color:var(--accent);font-weight:800;padding:0 4px}
 .blank.filled{border-bottom-color:var(--good);color:var(--good);animation:popIn .32s ease}
