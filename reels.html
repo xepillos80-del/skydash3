@@ -205,9 +205,9 @@ input[type=checkbox]{accent-color:var(--yellow);width:16px;height:16px;margin:0;
   .brand .sub{display:none}
   .brand{font-size:14px}
   .btn{height:32px;padding:0 11px;font-size:12.5px}
-  .layout{display:block;height:calc(100dvh - 50px);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 8px 84px;gap:0}
-  .col{border-radius:14px;margin-bottom:8px;overflow:visible;height:auto;padding:10px}
-  .center{position:sticky;top:0;z-index:20;background:var(--bg);margin:-8px -8px 8px;padding:8px 8px 6px;border-radius:0;border:0;border-bottom:1px solid var(--line);overflow:visible}
+  .layout{display:flex;flex-direction:column;height:calc(100dvh - 50px);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 8px 84px;gap:0}
+  .col{border-radius:14px;margin-bottom:8px;overflow:visible;height:auto;padding:10px;order:2}
+  .center{order:-1;position:sticky;top:0;z-index:20;background:var(--bg);margin:-8px -8px 8px;padding:8px 8px 6px;border-radius:0;border:0;border-bottom:1px solid var(--line);overflow:visible}
   .previewWrap{flex:0 0 auto}
   #preview{height:min(48vh,110vw);width:auto}
   .emptyState{padding:14px;font-size:12px;gap:8px}
