@@ -21,7 +21,8 @@ body{
   background:var(--bg); color:var(--text); font-size:14px;
   font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;
   -webkit-font-smoothing:antialiased; overscroll-behavior:none;
-  display:flex; flex-direction:column; height:100dvh; overflow:hidden;
+  display:flex; flex-direction:column; height:100vh; height:100dvh; overflow:hidden;
+  touch-action:manipulation;
 }
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer;border:0;background:none;padding:0}
@@ -201,11 +202,12 @@ input[type=checkbox]{accent-color:var(--yellow);width:16px;height:16px;margin:0;
 
 /* ---------- mobile ---------- */
 @media (max-width: 999px){
+  body{padding-top:env(safe-area-inset-top)}
   .topbar{height:50px;padding:0 10px}
   .brand .sub{display:none}
   .brand{font-size:14px}
   .btn{height:32px;padding:0 11px;font-size:12.5px}
-  .layout{display:flex;flex-direction:column;height:calc(100dvh - 50px);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 8px 84px;gap:0}
+  .layout{display:flex;flex-direction:column;height:calc(100vh - 50px);height:calc(100dvh - 50px - env(safe-area-inset-top));overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 8px 84px;gap:0}
   .col{border-radius:14px;margin-bottom:8px;overflow:visible;height:auto;padding:10px;order:2}
   .center{order:-1;flex:0 0 auto;position:sticky;top:0;z-index:20;background:var(--bg);margin:-8px -8px 8px;padding:8px 8px 6px;border-radius:0;border:0;border-bottom:1px solid var(--line);overflow:visible}
   .previewWrap{flex:0 0 auto}
@@ -224,17 +226,18 @@ input[type=checkbox]{accent-color:var(--yellow);width:16px;height:16px;margin:0;
   .rtabs{display:none}
   .mtabs{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:50;background:rgba(12,12,16,.96);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
   .mtab{flex:1;height:42px;border-radius:10px;font-size:12px;font-weight:800;color:var(--muted);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+  .mtab .lb{white-space:nowrap;line-height:1.1}
   .mtab .ic{font-size:14px}
   .mtab.on{background:#211d05;color:var(--yellow)}
   .modal{padding:0;align-items:stretch}
   .modalPanel{max-width:none;max-height:none;height:100dvh;border-radius:0;border:0}
   .modalBody{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr);overflow:auto}
-  .clipPane{border-right:0;border-bottom:1px solid var(--line);max-height:34vh}
+  .clipPane{border-right:0;border-bottom:1px solid var(--line);max-height:30vh}
   .clipPane .grid{grid-template-columns:repeat(4,1fr)}
   .tile .nm{font-size:9px;padding:10px 4px 3px}
   .stage{padding:9px 10px 12px}
-  .stageVideo{min-height:36vh}
-  .filmstrip{height:62px}
+  .stageVideo{min-height:26vh}
+  .filmstrip{height:56px}
   .hint{display:none}
   .rangeRow .note{display:none}
   .rangeRow .f{width:76px}
@@ -410,9 +413,9 @@ input[type=checkbox]{accent-color:var(--yellow);width:16px;height:16px;margin:0;
 
 <!-- 모바일 탭 -->
 <nav class="mtabs">
-  <button class="mtab on" data-pane="cuts"><span class="ic">🎞</span>컷</button>
-  <button class="mtab" data-pane="sub"><span class="ic">🅰</span>자막</button>
-  <button class="mtab" data-pane="audio"><span class="ic">🎵</span>오디오</button>
+  <button class="mtab on" data-pane="cuts"><span class="ic">🎞</span><span class="lb">컷</span></button>
+  <button class="mtab" data-pane="sub"><span class="ic">🅰</span><span class="lb">자막</span></button>
+  <button class="mtab" data-pane="audio"><span class="ic">🎵</span><span class="lb">오디오</span></button>
 </nav>
 
 <!-- 클립 교체 · 구간 선택 -->
